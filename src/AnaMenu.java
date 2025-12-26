@@ -14,8 +14,7 @@ public class AnaMenu extends JFrame {
         // 1. Üye Yönetimi Butonu
         JButton btnUye = new JButton("Üye Yönetimi");
         btnUye.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Üye Ekranı açılacak...");
-            // Buraya ileride: new UyeEkrani().setVisible(true); yazacağız
+            new UyeEkrani().setVisible(true);
         });
         add(btnUye);
 
@@ -29,7 +28,7 @@ public class AnaMenu extends JFrame {
         // 3. Ödünç Verme / Teslim Alma
         JButton btnOdunc = new JButton("Ödünç / Teslim İşlemleri");
         btnOdunc.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Ödünç Ekranı açılacak...");
+            new OduncEkrani().setVisible(true);
         });
         add(btnOdunc);
 
