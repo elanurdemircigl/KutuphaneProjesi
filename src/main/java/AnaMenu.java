@@ -35,7 +35,7 @@ public class AnaMenu extends JFrame {
         // 4. Cezalar ve Raporlar
         JButton btnRapor = new JButton("Cezalar ve Raporlar");
         btnRapor.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Rapor Ekranı açılacak...");
+            new RaporEkrani().setVisible(true);
         });
         add(btnRapor);
 
