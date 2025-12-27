@@ -25,24 +25,22 @@ public class RaporEkrani extends JFrame {
 
         JPanel pnlAlt = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnExcel = new JButton("Excel'e Aktar (CSV)");
-        btnExcel.setBackground(new Color(34, 139, 34)); // Yeşil
+        btnExcel.setBackground(new Color(34, 139, 34));
         btnExcel.setForeground(Color.WHITE);
         pnlAlt.add(btnExcel);
         add(pnlAlt, BorderLayout.SOUTH);
 
         tabs = new JTabbedPane();
-        //Statik Raporlar
+
         JPanel pnlStatik = new JPanel(new GridLayout(3, 1, 10, 10));
         pnlStatik.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        //Üye Özet
         JPanel pnlOzet = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
         pnlOzet.setBorder(BorderFactory.createTitledBorder("Üye Özet Raporu"));
         txtUyeID = new JTextField(10);
         JButton btnOzet = new JButton("Özet Getir");
         pnlOzet.add(new JLabel("Üye ID:")); pnlOzet.add(txtUyeID); pnlOzet.add(btnOzet);
 
-        //Tarih Aralığı
         JPanel pnlTarih = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
         pnlTarih.setBorder(BorderFactory.createTitledBorder("Tarih Aralığı Ödünç Raporu"));
         txtBaslangic = new JTextField("2024-01-01", 10);
@@ -51,7 +49,6 @@ public class RaporEkrani extends JFrame {
         pnlTarih.add(new JLabel("Başlangıç:")); pnlTarih.add(txtBaslangic);
         pnlTarih.add(new JLabel("Bitiş:")); pnlTarih.add(txtBitis); pnlTarih.add(btnTarih);
 
-        //Hızlı Raporlar
         JPanel pnlButonlar = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
         pnlButonlar.setBorder(BorderFactory.createTitledBorder("Hızlı Raporlar"));
 
@@ -73,31 +70,65 @@ public class RaporEkrani extends JFrame {
         pnlStatik.add(pnlOzet); pnlStatik.add(pnlTarih); pnlStatik.add(pnlButonlar);
         tabs.addTab("Statik Raporlar", pnlStatik);
 
-        //Dinamik Sorgu
         JPanel pnlDinamik = new JPanel(new GridBagLayout());
         pnlDinamik.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0; gbc.gridy = 0; pnlDinamik.add(new JLabel("Kitap Adı:"), gbc);
-        gbc.gridx = 1; txtKitapAd = new JTextField(); pnlDinamik.add(txtKitapAd, gbc);
-        gbc.gridx = 2; pnlDinamik.add(new JLabel("Yazar:"), gbc);
-        gbc.gridx = 3; txtYazar = new JTextField(); pnlDinamik.add(txtYazar, gbc);
+        Dimension txtBoyut = new Dimension(150, 25);
 
-        gbc.gridx = 0; gbc.gridy = 1; pnlDinamik.add(new JLabel("Kategori:"), gbc);
-        gbc.gridx = 1; cbKategori = new JComboBox<>(new String[]{"Hepsi", "Roman", "Bilim", "Tarih", "Yazılım"}); pnlDinamik.add(cbKategori, gbc);
-        gbc.gridx = 2; pnlDinamik.add(new JLabel("Min Yıl:"), gbc);
-        gbc.gridx = 3; txtYilMin = new JTextField(); pnlDinamik.add(txtYilMin, gbc);
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.1;
+        pnlDinamik.add(new JLabel("Kitap Adı:"), gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2; pnlDinamik.add(new JLabel(""), gbc);
-        gbc.gridx = 1; chkSadeceMevcut = new JCheckBox("Sadece Mevcut Kitaplar"); pnlDinamik.add(chkSadeceMevcut, gbc);
-        gbc.gridx = 2; pnlDinamik.add(new JLabel("Max Yıl:"), gbc);
-        gbc.gridx = 3; txtYilMax = new JTextField(); pnlDinamik.add(txtYilMax, gbc);
+        gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 0.4;
+        txtKitapAd = new JTextField();
+        txtKitapAd.setPreferredSize(txtBoyut);
+        pnlDinamik.add(txtKitapAd, gbc);
+
+        gbc.gridx = 2; gbc.gridy = 0; gbc.weightx = 0.1;
+        pnlDinamik.add(new JLabel("Yazar:"), gbc);
+
+        gbc.gridx = 3; gbc.gridy = 0; gbc.weightx = 0.4;
+        txtYazar = new JTextField();
+        txtYazar.setPreferredSize(txtBoyut);
+        pnlDinamik.add(txtYazar, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.1;
+        pnlDinamik.add(new JLabel("Kategori:"), gbc);
+
+        gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 0.4;
+        cbKategori = new JComboBox<>(new String[]{"Hepsi", "Roman", "Bilim", "Tarih", "Yazılım"});
+        cbKategori.setPreferredSize(txtBoyut);
+        pnlDinamik.add(cbKategori, gbc);
+
+        gbc.gridx = 2; gbc.gridy = 1; gbc.weightx = 0.1;
+        pnlDinamik.add(new JLabel("Min Yıl:"), gbc);
+
+        gbc.gridx = 3; gbc.gridy = 1; gbc.weightx = 0.4;
+        txtYilMin = new JTextField();
+        txtYilMin.setPreferredSize(txtBoyut);
+        pnlDinamik.add(txtYilMin, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0.1;
+        pnlDinamik.add(new JLabel(""), gbc);
+
+        gbc.gridx = 1; gbc.gridy = 2; gbc.weightx = 0.4;
+        chkSadeceMevcut = new JCheckBox("Sadece Mevcut Kitaplar");
+        pnlDinamik.add(chkSadeceMevcut, gbc);
+
+        gbc.gridx = 2; gbc.gridy = 2; gbc.weightx = 0.1;
+        pnlDinamik.add(new JLabel("Max Yıl:"), gbc);
+
+        gbc.gridx = 3; gbc.gridy = 2; gbc.weightx = 0.4;
+        txtYilMax = new JTextField();
+        txtYilMax.setPreferredSize(txtBoyut);
+        pnlDinamik.add(txtYilMax, gbc);
 
         gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 4; gbc.ipady = 15;
         JButton btnDinamik = new JButton("DİNAMİK ARA");
-        btnDinamik.setBackground(new Color(0, 123, 255)); btnDinamik.setForeground(Color.WHITE);
+        btnDinamik.setBackground(new Color(0, 123, 255));
+        btnDinamik.setForeground(Color.WHITE);
         pnlDinamik.add(btnDinamik, gbc);
 
         tabs.addTab("Dinamik Sorgu", pnlDinamik);
