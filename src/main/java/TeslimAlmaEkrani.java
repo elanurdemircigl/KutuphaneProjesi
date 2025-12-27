@@ -12,16 +12,14 @@ public class TeslimAlmaEkrani extends JFrame {
     private JTextField txtAra;
 
     public TeslimAlmaEkrani() {
-        setTitle("Kitap Teslim Alma Ekranı"); // Madde 4.6
+        setTitle("Kitap Teslim Alma (İade) Ekranı"); // Madde 4.6
         setSize(900, 600);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
-        // --- ÜST: FİLTRELEME ---
+        // --- FİLTRELEME KISMI ---
         JPanel pnlUst = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        pnlUst.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
         pnlUst.add(new JLabel("Filtrele (Üye/Kitap Adı):"));
-
         txtAra = new JTextField(20);
         txtAra.addKeyListener(new KeyAdapter() {
             @Override
@@ -29,28 +27,28 @@ public class TeslimAlmaEkrani extends JFrame {
                 listele(txtAra.getText());
             }
         });
+        pnlUst.add(txtAra);
 
         JButton btnYenile = new JButton("Listeyi Yenile");
         btnYenile.addActionListener(e -> { txtAra.setText(""); listele(""); });
-
-        pnlUst.add(txtAra);
         pnlUst.add(btnYenile);
+
         add(pnlUst, BorderLayout.NORTH);
 
-        // --- ORTA: TABLO ---
+        // --- TABLO ---
         model = new DefaultTableModel();
         model.setColumnIdentifiers(new String[]{"Ödünç ID", "Üye Adı", "Kitap Adı", "Veriliş Tarihi", "Son Teslim"});
         table = new JTable(model);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // --- ALT: TESLİM BUTONU ---
+        // --- TESLİM BUTONU ---
         JButton btnTeslim = new JButton("SEÇİLİ KİTABI TESLİM AL");
         btnTeslim.setBackground(new Color(200, 100, 100)); // Kırmızı
         btnTeslim.setForeground(Color.WHITE);
         btnTeslim.setFont(new Font("Arial", Font.BOLD, 14));
         btnTeslim.setPreferredSize(new Dimension(0, 50));
-
         btnTeslim.addActionListener(e -> teslimAl());
+
         add(btnTeslim, BorderLayout.SOUTH);
 
         listele("");
@@ -86,22 +84,23 @@ public class TeslimAlmaEkrani extends JFrame {
         int oduncID = (int) model.getValueAt(satir, 0);
 
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8", "root", "")) {
-            // Prosedürü çağır
+            // 1. Teslim Prosedürü
             CallableStatement cs = conn.prepareCall("{ call sp_KitapTeslimAl(?) }");
             cs.setInt(1, oduncID);
             cs.execute();
 
-            // Ceza kontrolü
+            // 2. Ceza Kontrolü (Bonus)
             PreparedStatement ps = conn.prepareStatement("SELECT Tutar, Aciklama FROM CEZA WHERE OduncID = ?");
             ps.setInt(1, oduncID);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                JOptionPane.showMessageDialog(this, "Teslim Alındı.\n⚠️ GECİKME CEZASI: " + rs.getDouble("Tutar") + " TL\n(" + rs.getString("Aciklama") + ")", "Uyarı", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "⚠️ GECİKME CEZASI KESİLDİ!\nTutar: " + rs.getDouble("Tutar") + " TL\n(" + rs.getString("Aciklama") + ")", "Uyarı", JOptionPane.WARNING_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(this, "Kitap zamanında teslim alındı.");
             }
-            listele("");
+            listele(""); // Listeyi güncelle
+
         } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Hata: " + ex.getMessage()); }
     }
 }

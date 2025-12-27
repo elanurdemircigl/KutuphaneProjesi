@@ -6,88 +6,89 @@ public class AnaMenu extends JFrame {
     public AnaMenu(String kullaniciRolu) {
         // --- PENCERE AYARLARI ---
         setTitle("Kütüphane Yönetim Sistemi - Ana Menü");
-        setSize(700, 500);
+        setSize(800, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
         // --- 1. ÜST KISIM: HOŞGELDİNİZ METNİ ---
-        // Ödev Gereksinimi 4.2: Hoş geldiniz, [KullanıcıAdı] metni [cite: 73]
         JLabel lblBilgi = new JLabel("Hoş geldiniz, Yetki: " + kullaniciRolu, SwingConstants.CENTER);
-        lblBilgi.setFont(new Font("Arial", Font.BOLD, 18));
+        lblBilgi.setFont(new Font("Arial", Font.BOLD, 22));
         lblBilgi.setBorder(BorderFactory.createEmptyBorder(20, 10, 10, 10));
         add(lblBilgi, BorderLayout.NORTH);
 
-        // --- 2. ORTA KISIM: BUTONLAR ---
-        JPanel pnlButonlar = new JPanel(new GridLayout(4, 2, 15, 15));
-        pnlButonlar.setBorder(BorderFactory.createEmptyBorder(10, 40, 40, 40));
+        // --- 2. ORTA KISIM: BUTONLAR (4 Satır x 2 Sütun) ---
+        JPanel pnlButonlar = new JPanel(new GridLayout(4, 2, 20, 20));
+        pnlButonlar.setBorder(BorderFactory.createEmptyBorder(10, 50, 40, 50));
 
-        // 1. Üye Yönetimi (Madde 4.3) [cite: 75, 83]
+        Font btnFont = new Font("Arial", Font.BOLD, 14);
+
+        // 1. Üye Yönetimi
         JButton btnUye = new JButton("Üye Yönetimi");
-        btnUye.setFont(new Font("Arial", Font.PLAIN, 14));
+        btnUye.setFont(btnFont);
         btnUye.addActionListener(e -> new UyeEkrani().setVisible(true));
         pnlButonlar.add(btnUye);
 
-        // 2. Kitap Yönetimi (Madde 4.4) [cite: 76, 92]
+        // 2. Kitap Yönetimi
         JButton btnKitap = new JButton("Kitap Yönetimi");
-        btnKitap.setFont(new Font("Arial", Font.PLAIN, 14));
+        btnKitap.setFont(btnFont);
         btnKitap.addActionListener(e -> new KitapEkrani().setVisible(true));
         pnlButonlar.add(btnKitap);
 
-        // 3. Ödünç İşlemleri (Madde 4.5 & 4.6) [cite: 77, 104, 118]
-        // ... (Kodun üst kısımları aynı) ...
-
-        // 3. Ödünç Verme Ekranı (YENİ)
+        // 3. Ödünç Verme Ekranı (DÜZELTİLDİ: Senin dosya adına göre)
         JButton btnOduncVer = new JButton("Ödünç Verme Ekranı");
-        btnOduncVer.setFont(new Font("Arial", Font.PLAIN, 14));
+        btnOduncVer.setFont(btnFont);
+        // Listende 'OduncVermeEkrani' yok, 'OduncEkrani' var. O yüzden bunu çağırıyoruz.
         btnOduncVer.addActionListener(e -> new OduncEkrani().setVisible(true));
         pnlButonlar.add(btnOduncVer);
 
-        // 4. Kitap Teslim Alma Ekranı (YENİ)
+        // 4. Kitap Teslim Alma
         JButton btnTeslimAl = new JButton("Kitap Teslim Alma");
-        btnTeslimAl.setFont(new Font("Arial", Font.PLAIN, 14));
+        btnTeslimAl.setFont(btnFont);
         btnTeslimAl.addActionListener(e -> new TeslimAlmaEkrani().setVisible(true));
         pnlButonlar.add(btnTeslimAl);
 
-        // Diğer butonlar (Ceza, Rapor, Çıkış vs.) aynı şekilde devam eder...
-        // Sadece buton sayısı arttığı için GridLayout(4, 2) düzenimiz tam dolacaktır.
-
-        // 4. Ceza Görüntüleme (Madde 4.7) [cite: 78, 133]
+        // 5. Ceza Görüntüleme
         JButton btnCeza = new JButton("Ceza Görüntüleme");
-        btnCeza.setFont(new Font("Arial", Font.PLAIN, 14));
-        btnCeza.addActionListener(e -> new CezaEkrani().setVisible(true));
+        btnCeza.setFont(btnFont);
+        btnCeza.addActionListener(e -> {
+            RaporEkrani ekran = new RaporEkrani();
+            ekran.setVisible(true);
+            ekran.sekmeSec(0);
+            JOptionPane.showMessageDialog(this, "Cezaları 'Hazır İstatistikler' sekmesinden görebilirsiniz.");
+        });
         pnlButonlar.add(btnCeza);
 
-        // 5. Raporlar (Madde 5.1) [cite: 80, 142]
+        // 6. Raporlar
         JButton btnRapor = new JButton("Raporlar");
-        btnRapor.setFont(new Font("Arial", Font.PLAIN, 14));
-        btnRapor.addActionListener(e -> new RaporEkrani().setVisible(true));
+        btnRapor.setFont(btnFont);
+        btnRapor.addActionListener(e -> {
+            RaporEkrani ekran = new RaporEkrani();
+            ekran.setVisible(true);
+            ekran.sekmeSec(0);
+        });
         pnlButonlar.add(btnRapor);
 
-        // 6. DİNAMİK SORGU EKRANI (DÜZELTİLDİ - Madde 5.2) [cite: 81, 155]
+        // 7. Dinamik Sorgu
         JButton btnDinamik = new JButton("Dinamik Sorgu Ekranı");
         btnDinamik.setBackground(new Color(200, 230, 255));
-        btnDinamik.setFont(new Font("Arial", Font.BOLD, 14));
+        btnDinamik.setFont(btnFont);
         btnDinamik.addActionListener(e -> {
-            // Mesaj kutusu kaldırıldı, doğrudan ilgili sekmeyi açıyoruz
-            RaporEkrani raporEkrani = new RaporEkrani();
-            raporEkrani.setTab(1); // 1. indeks 'Dinamik Sorgu' sekmesidir
-            raporEkrani.setVisible(true);
+            RaporEkrani ekran = new RaporEkrani();
+            ekran.setVisible(true);
+            ekran.sekmeSec(1);
         });
         pnlButonlar.add(btnDinamik);
 
-        // 7. Çıkış Butonu [cite: 82]
+        // 8. Çıkış
         JButton btnCikis = new JButton("Çıkış Yap");
-        btnCikis.setFont(new Font("Arial", Font.BOLD, 14));
+        btnCikis.setFont(btnFont);
         btnCikis.setForeground(Color.RED);
         btnCikis.addActionListener(e -> {
             this.dispose();
             new GirisEkrani().setVisible(true);
         });
         pnlButonlar.add(btnCikis);
-
-        // 8. Boşluk (Simetri için)
-        pnlButonlar.add(new JLabel(""));
 
         add(pnlButonlar, BorderLayout.CENTER);
     }
