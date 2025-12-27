@@ -46,9 +46,7 @@ public class AnaMenu extends JFrame {
         JButton btnCeza = new JButton("Ceza Görüntüleme");
         btnCeza.setFont(new Font("Arial", Font.PLAIN, 14));
         btnCeza.addActionListener(e -> {
-            new RaporEkrani().setVisible(true);
-            // Kullanıcıya bilgi verelim
-            JOptionPane.showMessageDialog(this, "Cezaları 'Hazır İstatistikler' sekmesinden görebilirsiniz.");
+            new CezaEkrani().setVisible(true);
         });
         pnlButonlar.add(btnCeza);
 
