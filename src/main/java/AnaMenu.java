@@ -35,10 +35,22 @@ public class AnaMenu extends JFrame {
         pnlButonlar.add(btnKitap);
 
         // 3. Ödünç İşlemleri (Madde 4.5 & 4.6) [cite: 77, 104, 118]
-        JButton btnOdunc = new JButton("Ödünç İşlemleri");
-        btnOdunc.setFont(new Font("Arial", Font.PLAIN, 14));
-        btnOdunc.addActionListener(e -> new OduncEkrani().setVisible(true));
-        pnlButonlar.add(btnOdunc);
+        // ... (Kodun üst kısımları aynı) ...
+
+        // 3. Ödünç Verme Ekranı (YENİ)
+        JButton btnOduncVer = new JButton("Ödünç Verme Ekranı");
+        btnOduncVer.setFont(new Font("Arial", Font.PLAIN, 14));
+        btnOduncVer.addActionListener(e -> new OduncEkrani().setVisible(true));
+        pnlButonlar.add(btnOduncVer);
+
+        // 4. Kitap Teslim Alma Ekranı (YENİ)
+        JButton btnTeslimAl = new JButton("Kitap Teslim Alma");
+        btnTeslimAl.setFont(new Font("Arial", Font.PLAIN, 14));
+        btnTeslimAl.addActionListener(e -> new TeslimAlmaEkrani().setVisible(true));
+        pnlButonlar.add(btnTeslimAl);
+
+        // Diğer butonlar (Ceza, Rapor, Çıkış vs.) aynı şekilde devam eder...
+        // Sadece buton sayısı arttığı için GridLayout(4, 2) düzenimiz tam dolacaktır.
 
         // 4. Ceza Görüntüleme (Madde 4.7) [cite: 78, 133]
         JButton btnCeza = new JButton("Ceza Görüntüleme");
