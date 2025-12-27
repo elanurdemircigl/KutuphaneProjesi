@@ -11,7 +11,7 @@ public class CezaEkrani extends JFrame {
 
     public CezaEkrani() {
         setTitle("4.7 Ceza Görüntüleme Ekranı");
-        setSize(800, 500);
+        setSize(900, 600); // Tablo genişlediği için boyutu biraz büyüttüm
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
@@ -33,7 +33,8 @@ public class CezaEkrani extends JFrame {
 
         // --- ORTA PANEL: TABLO ---
         model = new DefaultTableModel();
-        model.setColumnIdentifiers(new String[]{"Ceza ID", "Kitap Adı", "Ceza Tutarı", "İade Tarihi"});
+        // Sütun yapısı güncellendi
+        model.setColumnIdentifiers(new String[]{"Ad", "Soyad", "Kitap Adı", "Ceza Tutarı", "İade Tarihi"});
         table = new JTable(model);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
@@ -56,23 +57,29 @@ public class CezaEkrani extends JFrame {
             return;
         }
 
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8", "root", "")) {
-            // 1. Üyenin Toplam Borcunu Çek (Ödev 4.7 - Toplam borç alanı)
+        String url = "jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8";
+
+        try (Connection conn = DriverManager.getConnection(url, "root", "")) {
+            // 1. Üyenin Toplam Borcunu Çek
             String sqlBorc = "SELECT ToplamBorc FROM UYE WHERE UyeID = ?";
             PreparedStatement psBorc = conn.prepareStatement(sqlBorc);
             psBorc.setInt(1, Integer.parseInt(uyeID));
             ResultSet rsBorc = psBorc.executeQuery();
             if (rsBorc.next()) {
                 lblToplamBorc.setText("Üyenin Toplam Borcu: " + rsBorc.getDouble("ToplamBorc") + " TL");
+            } else {
+                lblToplamBorc.setText("Üye bulunamadı!");
             }
 
-            // 2. Cezaları Listele (Ödev 4.7 - Üyeye göre listeleme ve Tarih aralığı)
+            // 2. Cezaları Listele (JOIN ile Üye isimlerini getiriyoruz)
             model.setRowCount(0);
-            String sqlListe = "SELECT C.CezaID, K.KitapAdi, C.Tutar, O.TeslimTarihi " +
+            String sqlListe = "SELECT U.Ad, U.Soyad, K.KitapAdi, C.Tutar, O.TeslimTarihi " +
                     "FROM CEZA C " +
+                    "JOIN UYE U ON C.UyeID = U.UyeID " +
                     "JOIN ODUNC O ON C.OduncID = O.OduncID " +
                     "JOIN KITAP K ON O.KitapID = K.KitapID " +
                     "WHERE C.UyeID = ? AND O.TeslimTarihi BETWEEN ? AND ?";
+
             PreparedStatement psListe = conn.prepareStatement(sqlListe);
             psListe.setInt(1, Integer.parseInt(uyeID));
             psListe.setString(2, txtBaslangic.getText());
@@ -80,8 +87,10 @@ public class CezaEkrani extends JFrame {
 
             ResultSet rsListe = psListe.executeQuery();
             while (rsListe.next()) {
+                // Verileri yeni sütun sırasına göre ekliyoruz
                 model.addRow(new Object[]{
-                        rsListe.getInt("CezaID"),
+                        rsListe.getString("Ad"),
+                        rsListe.getString("Soyad"),
                         rsListe.getString("KitapAdi"),
                         rsListe.getDouble("Tutar") + " TL",
                         rsListe.getTimestamp("TeslimTarihi")
