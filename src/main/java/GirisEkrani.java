@@ -53,8 +53,8 @@ public class GirisEkrani extends JFrame {
 
         //Veritabanı Bağlantısı
         String url = "jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8";
-        String dbUser = "root";
-        String dbPass = "";
+        String dbUser = "elanur";
+        String dbPass = "1234";
 
         try {
             Connection baglanti = DriverManager.getConnection(url, dbUser, dbPass);
