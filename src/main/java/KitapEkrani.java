@@ -162,15 +162,24 @@ public class KitapEkrani extends JFrame {
         return DriverManager.getConnection("jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8", "root", "");
     }
 
+    // Mevcut 'kitaplariListele' metodunu bununla değiştir:
     private void kitaplariListele(String aranan) {
         try (Connection conn = baglantiAl()) {
-            String sql = "SELECT * FROM KITAP WHERE KitapAdi LIKE ? OR Yazar LIKE ?";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, "%" + aranan + "%");
-            ps.setString(2, "%" + aranan + "%");
 
-            ResultSet rs = ps.executeQuery();
+            // Eski SQL yerine artık Prosedür çağırıyoruz
+            String sql = "{ call sp_KitapAra(?, ?) }";
+            CallableStatement cs = conn.prepareCall(sql);
 
+            // 1. Parametre: Arama Metni (Metin kutusundan gelen)
+            cs.setString(1, aranan);
+
+            // 2. Parametre: Kategori (Şimdilik 'Hepsi' gönderiyoruz, ileride filtre ekleyebilirsin)
+            // Eğer formdaki kategoriyi kullanmak istersen: cbKategori.getSelectedItem().toString() yazabilirsin.
+            cs.setString(2, "Hepsi");
+
+            ResultSet rs = cs.executeQuery();
+
+            // Tabloyu Temizle ve Doldur
             model.setRowCount(0);
             model.setColumnIdentifiers(new String[]{"ID", "Kitap Adı", "Yazar", "Kategori", "Yayınevi", "Yıl", "Toplam", "Mevcut"});
 
@@ -187,7 +196,7 @@ public class KitapEkrani extends JFrame {
                 });
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Listeleme Hatası: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Arama Hatası: " + ex.getMessage());
         }
     }
 
