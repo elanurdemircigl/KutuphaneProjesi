@@ -37,8 +37,8 @@ public class RaporEkrani extends JFrame {
         // =================================================================
         // SEKME 1: STATİK RAPORLAR (Tasarımı İyileştirildi)
         // =================================================================
-        JPanel pnlStatik = new JPanel(new GridLayout(3, 1, 10, 10)); // Satırlar arası boşluk artırıldı
-        pnlStatik.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Kenar boşluğu
+        JPanel pnlStatik = new JPanel(new GridLayout(3, 1, 10, 10));
+        pnlStatik.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // 1. Panel: Üye Özet
         JPanel pnlOzet = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
@@ -58,9 +58,10 @@ public class RaporEkrani extends JFrame {
         pnlTarih.add(new JLabel("Başlangıç:")); pnlTarih.add(txtBaslangic);
         pnlTarih.add(new JLabel("Bitiş:")); pnlTarih.add(txtBitis); pnlTarih.add(btnTarih);
 
-        // 3. Panel: Hazır Butonlar
+        // 3. Panel: Hızlı Raporlar (Yeni Buton Buraya Eklendi)
         JPanel pnlButonlar = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
         pnlButonlar.setBorder(BorderFactory.createTitledBorder("Hızlı Raporlar"));
+
         JButton btnGeciken = new JButton("Geciken Kitaplar");
         btnGeciken.setBackground(new Color(220, 53, 69)); // Kırmızı
         btnGeciken.setForeground(Color.WHITE);
@@ -68,26 +69,30 @@ public class RaporEkrani extends JFrame {
         JButton btnPopuler = new JButton("En Çok Ödünç Alınanlar");
         btnPopuler.setBackground(new Color(255, 193, 7)); // Sarı
 
+        // YENİ BUTON: En Çok Ceza Alanlar
+        JButton btnEnCokCeza = new JButton("En Çok Ceza Alan Üyeler");
+        btnEnCokCeza.setBackground(new Color(255, 69, 0)); // Turuncu/Kırmızı
+        btnEnCokCeza.setForeground(Color.WHITE);
+
         pnlButonlar.add(btnGeciken);
         pnlButonlar.add(btnPopuler);
+        pnlButonlar.add(btnEnCokCeza);
 
         pnlStatik.add(pnlOzet); pnlStatik.add(pnlTarih); pnlStatik.add(pnlButonlar);
         tabs.addTab("Statik Raporlar", pnlStatik);
 
         // =================================================================
-        // SEKME 2: DİNAMİK SORGU (Tamamen Düzeltildi - GridBagLayout)
+        // SEKME 2: DİNAMİK SORGU (GridBagLayout)
         // =================================================================
         JPanel pnlDinamik = new JPanel(new GridBagLayout());
         pnlDinamik.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5); // Bileşenler arası boşluk
-        gbc.fill = GridBagConstraints.HORIZONTAL; // Kutular yatayda genişlesin
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // --- SATIR 1 ---
         // Kitap Adı
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.1;
         pnlDinamik.add(new JLabel("Kitap Adı:"), gbc);
-
         gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 0.4;
         txtKitapAd = new JTextField();
         pnlDinamik.add(txtKitapAd, gbc);
@@ -95,16 +100,13 @@ public class RaporEkrani extends JFrame {
         // Yazar
         gbc.gridx = 2; gbc.gridy = 0; gbc.weightx = 0.1;
         pnlDinamik.add(new JLabel("Yazar:"), gbc);
-
         gbc.gridx = 3; gbc.gridy = 0; gbc.weightx = 0.4;
         txtYazar = new JTextField();
         pnlDinamik.add(txtYazar, gbc);
 
-        // --- SATIR 2 ---
         // Kategori
         gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.1;
         pnlDinamik.add(new JLabel("Kategori:"), gbc);
-
         gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 0.4;
         cbKategori = new JComboBox<>(new String[]{"Hepsi", "Roman", "Bilim", "Tarih", "Yazılım"});
         pnlDinamik.add(cbKategori, gbc);
@@ -112,17 +114,13 @@ public class RaporEkrani extends JFrame {
         // Min Yıl
         gbc.gridx = 2; gbc.gridy = 1; gbc.weightx = 0.1;
         pnlDinamik.add(new JLabel("Min Yıl:"), gbc);
-
         gbc.gridx = 3; gbc.gridy = 1; gbc.weightx = 0.4;
         txtYilMin = new JTextField();
         pnlDinamik.add(txtYilMin, gbc);
 
-        // --- SATIR 3 ---
-        // Checkbox (Sadece Mevcut)
+        // Checkbox
         gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0.1;
-        // Boş etiket (hizalamak için)
         pnlDinamik.add(new JLabel(""), gbc);
-
         gbc.gridx = 1; gbc.gridy = 2; gbc.weightx = 0.4;
         chkSadeceMevcut = new JCheckBox("Sadece Mevcut Kitaplar");
         pnlDinamik.add(chkSadeceMevcut, gbc);
@@ -130,17 +128,14 @@ public class RaporEkrani extends JFrame {
         // Max Yıl
         gbc.gridx = 2; gbc.gridy = 2; gbc.weightx = 0.1;
         pnlDinamik.add(new JLabel("Max Yıl:"), gbc);
-
         gbc.gridx = 3; gbc.gridy = 2; gbc.weightx = 0.4;
         txtYilMax = new JTextField();
         pnlDinamik.add(txtYilMax, gbc);
 
-        // --- SATIR 4: BUTON ---
-        gbc.gridx = 0; gbc.gridy = 3;
-        gbc.gridwidth = 4; // Buton tüm genişliği kaplasın
-        gbc.ipady = 15; // Buton biraz yüksek olsun
+        // Dinamik Ara Butonu
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 4; gbc.ipady = 15;
         JButton btnDinamik = new JButton("DİNAMİK ARA");
-        btnDinamik.setBackground(new Color(0, 123, 255)); // Mavi
+        btnDinamik.setBackground(new Color(0, 123, 255));
         btnDinamik.setForeground(Color.WHITE);
         btnDinamik.setFont(new Font("Arial", Font.BOLD, 14));
         pnlDinamik.add(btnDinamik, gbc);
@@ -148,23 +143,35 @@ public class RaporEkrani extends JFrame {
         tabs.addTab("Dinamik Sorgu", pnlDinamik);
         add(tabs, BorderLayout.NORTH);
 
-        // --- AKSİYONLAR (Değişmedi) ---
+        // --- AKSİYONLAR ---
         btnOzet.addActionListener(e -> uyeOzetGetir());
         btnTarih.addActionListener(e -> tarihRaporuGetir());
+
+        // Gecikenler
         btnGeciken.addActionListener(e -> raporGetir("SELECT U.Ad, U.Soyad, K.KitapAdi, O.SonTeslimTarihi, DATEDIFF(NOW(), O.SonTeslimTarihi) as GecikmeGun FROM ODUNC O JOIN UYE U ON O.UyeID = U.UyeID JOIN KITAP K ON O.KitapID = K.KitapID WHERE O.TeslimTarihi IS NULL AND O.SonTeslimTarihi < NOW()"));
+
+        // Popülerler
         btnPopuler.addActionListener(e -> raporGetir("SELECT K.KitapAdi, K.Yazar, COUNT(O.OduncID) as OduncSayisi FROM ODUNC O JOIN KITAP K ON O.KitapID = K.KitapID GROUP BY K.KitapAdi, K.Yazar ORDER BY OduncSayisi DESC"));
+
+        // YENİ AKSİYON: En Çok Ceza Alanlar
+        btnEnCokCeza.addActionListener(e -> {
+            String sql = "SELECT U.Ad, U.Soyad, SUM(C.Tutar) as Toplam_Ceza_TL, COUNT(C.CezaID) as Ceza_Sayisi " +
+                    "FROM CEZA C " +
+                    "JOIN UYE U ON C.UyeID = U.UyeID " +
+                    "GROUP BY U.UyeID, U.Ad, U.Soyad " +
+                    "ORDER BY Toplam_Ceza_TL DESC";
+            raporGetir(sql);
+        });
+
         btnDinamik.addActionListener(e -> dinamikAramaYap());
         btnExcel.addActionListener(e -> excelDisaAktar());
     }
 
-    // --- SEKME DEĞİŞTİRME METODU ---
     public void setTab(int index) {
         if (tabs != null) {
             tabs.setSelectedIndex(index);
         }
     }
-
-    // --- METOTLAR (Excel, Veritabanı vb. - Aynı Kaldı) ---
 
     private void excelDisaAktar() {
         try (FileWriter fw = new FileWriter("Kutuphane_Rapor.csv")) {
