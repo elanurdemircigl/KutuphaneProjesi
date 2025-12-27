@@ -58,7 +58,7 @@ public class RaporEkrani extends JFrame {
         pnlTarih.add(new JLabel("Başlangıç:")); pnlTarih.add(txtBaslangic);
         pnlTarih.add(new JLabel("Bitiş:")); pnlTarih.add(txtBitis); pnlTarih.add(btnTarih);
 
-        // 3. Panel: Hızlı Raporlar (Yeni Buton Buraya Eklendi)
+        // 3. Panel: Hızlı Raporlar
         JPanel pnlButonlar = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
         pnlButonlar.setBorder(BorderFactory.createTitledBorder("Hızlı Raporlar"));
 
@@ -167,7 +167,8 @@ public class RaporEkrani extends JFrame {
         btnExcel.addActionListener(e -> excelDisaAktar());
     }
 
-    public void setTab(int index) {
+    // --- BU METOD İSMİNİ 'setTab' YERİNE 'sekmeSec' YAPTIK (AnaMenu bunu arıyor!) ---
+    public void sekmeSec(int index) {
         if (tabs != null) {
             tabs.setSelectedIndex(index);
         }
