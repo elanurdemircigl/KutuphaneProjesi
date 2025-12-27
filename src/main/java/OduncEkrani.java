@@ -7,18 +7,16 @@ public class OduncEkrani extends JFrame {
     private JTextField txtUyeID, txtKitapID, txtPersonelID;
 
     public OduncEkrani() {
-        setTitle("Kitap Ödünç Verme Ekranı"); // Madde 4.5
-        setSize(450, 400); // Boyut optimize edildi
+        setTitle("Kitap Ödünç Verme Ekranı");
+        setSize(450, 400);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // --- FORM PANELİ ---
         JPanel pnlForm = new JPanel(new GridLayout(4, 2, 5, 10));
         pnlForm.setBorder(BorderFactory.createTitledBorder("Ödünç İşlemi"));
 
         Dimension txtBoyut = new Dimension(130, 25);
 
-        // 1. Üye ID ve ? Butonu
         JPanel pnlUyeSatir = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         txtUyeID = new JTextField();
         txtUyeID.setPreferredSize(txtBoyut);
@@ -26,39 +24,35 @@ public class OduncEkrani extends JFrame {
         JButton btnUyeSorgula = new JButton("?");
         btnUyeSorgula.setPreferredSize(new Dimension(40, 25));
         btnUyeSorgula.setToolTipText("Üyenin elindeki kitapları gör");
-        btnUyeSorgula.addActionListener(e -> aktifUyeOduncGoster()); // Senin Bonus Metodun
+        btnUyeSorgula.addActionListener(e -> aktifUyeOduncGoster());
 
         pnlUyeSatir.add(txtUyeID);
-        pnlUyeSatir.add(new JLabel(" ")); // Boşluk
+        pnlUyeSatir.add(new JLabel(" "));
         pnlUyeSatir.add(btnUyeSorgula);
 
         pnlForm.add(new JLabel("Üye ID:"));
         pnlForm.add(pnlUyeSatir);
 
-        // 2. Kitap ID
         pnlForm.add(new JLabel("Kitap ID:"));
         txtKitapID = new JTextField(); txtKitapID.setPreferredSize(txtBoyut);
         pnlForm.add(txtKitapID);
 
-        // 3. Personel ID
         pnlForm.add(new JLabel("Personel ID:"));
-        txtPersonelID = new JTextField("1"); // Varsayılan Admin
+        txtPersonelID = new JTextField("1");
         txtPersonelID.setEditable(false);
         txtPersonelID.setPreferredSize(txtBoyut);
         pnlForm.add(txtPersonelID);
 
-        // Boşluk
+
         pnlForm.add(new JLabel("")); pnlForm.add(new JLabel(""));
 
-        // --- BUTON ---
         JButton btnVer = new JButton("ÖDÜNÇ VER");
-        btnVer.setBackground(new Color(100, 200, 100)); // Yeşil
+        btnVer.setBackground(new Color(100, 200, 100));
         btnVer.setForeground(Color.WHITE);
         btnVer.setFont(new Font("Arial", Font.BOLD, 14));
         btnVer.setPreferredSize(new Dimension(0, 50));
         btnVer.addActionListener(e -> islemOduncVer());
 
-        // Düzenleme
         JPanel pnlWrapper = new JPanel(new BorderLayout());
         pnlWrapper.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         pnlWrapper.add(pnlForm, BorderLayout.NORTH);
@@ -67,7 +61,6 @@ public class OduncEkrani extends JFrame {
         add(btnVer, BorderLayout.SOUTH);
     }
 
-    // --- BONUS METOT: ÜYENİN ÜZERİNDEKİ KİTAPLAR ---
     private void aktifUyeOduncGoster() {
         String uyeID = txtUyeID.getText();
         if (uyeID.isEmpty()) {

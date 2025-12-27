@@ -11,11 +11,10 @@ public class CezaEkrani extends JFrame {
 
     public CezaEkrani() {
         setTitle("4.7 Ceza Görüntüleme Ekranı");
-        setSize(900, 600); // Tablo genişlediği için boyutu biraz büyüttüm
+        setSize(900, 600);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // --- ÜST PANEL: FİLTRELER ---
         JPanel pnlFiltre = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pnlFiltre.setBorder(BorderFactory.createTitledBorder("Filtreleme Seçenekleri"));
 
@@ -31,14 +30,11 @@ public class CezaEkrani extends JFrame {
 
         add(pnlFiltre, BorderLayout.NORTH);
 
-        // --- ORTA PANEL: TABLO ---
         model = new DefaultTableModel();
-        // Sütun yapısı güncellendi
         model.setColumnIdentifiers(new String[]{"Ad", "Soyad", "Kitap Adı", "Ceza Tutarı", "İade Tarihi"});
         table = new JTable(model);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // --- ALT PANEL: TOPLAM BORÇ ---
         JPanel pnlAlt = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         lblToplamBorc = new JLabel("Üyenin Toplam Borcu: 0.00 TL");
         lblToplamBorc.setFont(new Font("Arial", Font.BOLD, 14));
@@ -46,7 +42,6 @@ public class CezaEkrani extends JFrame {
         pnlAlt.add(lblToplamBorc);
         add(pnlAlt, BorderLayout.SOUTH);
 
-        // --- BUTON OLAYI ---
         btnSorgula.addActionListener(e -> cezaSorgula());
     }
 
@@ -60,7 +55,6 @@ public class CezaEkrani extends JFrame {
         String url = "jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8";
 
         try (Connection conn = DriverManager.getConnection(url, "root", "")) {
-            // 1. Üyenin Toplam Borcunu Çek
             String sqlBorc = "SELECT ToplamBorc FROM UYE WHERE UyeID = ?";
             PreparedStatement psBorc = conn.prepareStatement(sqlBorc);
             psBorc.setInt(1, Integer.parseInt(uyeID));
@@ -71,7 +65,6 @@ public class CezaEkrani extends JFrame {
                 lblToplamBorc.setText("Üye bulunamadı!");
             }
 
-            // 2. Cezaları Listele (JOIN ile Üye isimlerini getiriyoruz)
             model.setRowCount(0);
             String sqlListe = "SELECT U.Ad, U.Soyad, K.KitapAdi, C.Tutar, O.TeslimTarihi " +
                     "FROM CEZA C " +
@@ -87,7 +80,6 @@ public class CezaEkrani extends JFrame {
 
             ResultSet rsListe = psListe.executeQuery();
             while (rsListe.next()) {
-                // Verileri yeni sütun sırasına göre ekliyoruz
                 model.addRow(new Object[]{
                         rsListe.getString("Ad"),
                         rsListe.getString("Soyad"),

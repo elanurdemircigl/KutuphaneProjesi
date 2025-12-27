@@ -12,7 +12,6 @@ public class KitapEkrani extends JFrame {
     private JTable table;
     private DefaultTableModel model;
 
-    // Seçilen kitabın ID'sini tutmak için
     private int secilenKitapID = -1;
 
     public KitapEkrani() {
@@ -21,18 +20,11 @@ public class KitapEkrani extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
-        // ===========================================================================
-        // SOL PANEL (FORM ALANI) - İnceltilmiş ve Yukarı Sabitlenmiş Tasarım
-        // ===========================================================================
-
-        // 1. Form Bileşenleri Paneli
-        JPanel pnlForm = new JPanel(new GridLayout(7, 2, 5, 5)); // 7 Satır, 5px boşluk
+        JPanel pnlForm = new JPanel(new GridLayout(7, 2, 5, 5));
         pnlForm.setBorder(BorderFactory.createTitledBorder("Kitap Bilgileri"));
 
-        // Standart boyut (Kutuların yüksekliğini 25px ile sınırla)
         Dimension txtBoyut = new Dimension(150, 25);
 
-        // Bileşenleri Ekle
         pnlForm.add(new JLabel("Kitap Adı:"));
         txtAd = new JTextField(); txtAd.setPreferredSize(txtBoyut);
         pnlForm.add(txtAd);
@@ -60,31 +52,27 @@ public class KitapEkrani extends JFrame {
         txtAdet = new JTextField(); txtAdet.setPreferredSize(txtBoyut);
         pnlForm.add(txtAdet);
 
-        // Boşluk (Düzen düzgün dursun diye)
         pnlForm.add(new JLabel("")); pnlForm.add(new JLabel(""));
 
-        // 2. Butonlar Paneli
         JPanel pnlButonlar = new JPanel(new GridLayout(1, 3, 5, 0));
-        pnlButonlar.setPreferredSize(new Dimension(300, 35)); // Buton yüksekliği
+        pnlButonlar.setPreferredSize(new Dimension(300, 35));
 
         JButton btnEkle = new JButton("EKLE");
         JButton btnGuncelle = new JButton("GÜNCELLE");
         JButton btnSil = new JButton("SİL");
 
-        btnEkle.setBackground(new Color(100, 200, 100)); // Yeşil
-        btnGuncelle.setBackground(new Color(100, 150, 200)); // Mavi
-        btnSil.setBackground(new Color(200, 100, 100)); // Kırmızı
+        btnEkle.setBackground(new Color(100, 200, 100));
+        btnGuncelle.setBackground(new Color(100, 150, 200));
+        btnSil.setBackground(new Color(200, 100, 100));
 
         pnlButonlar.add(btnEkle);
         pnlButonlar.add(btnGuncelle);
         pnlButonlar.add(btnSil);
 
-        // 3. SOL KONTEYNER (Formu yukarı sabitlemek için Wrapper)
         JPanel pnlSolContainer = new JPanel(new BorderLayout());
-        pnlSolContainer.setPreferredSize(new Dimension(320, 0)); // Sol panel genişliği
+        pnlSolContainer.setPreferredSize(new Dimension(320, 0));
         pnlSolContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Form ve Butonları birleştirip Kuzeye (NORTH) koyuyoruz ki aşağı uzamasın
         JPanel pnlKuzeyBirlestirici = new JPanel(new BorderLayout(0, 10));
         pnlKuzeyBirlestirici.add(pnlForm, BorderLayout.CENTER);
         pnlKuzeyBirlestirici.add(pnlButonlar, BorderLayout.SOUTH);
@@ -93,9 +81,6 @@ public class KitapEkrani extends JFrame {
 
         add(pnlSolContainer, BorderLayout.WEST);
 
-        // ===========================================================================
-        // ORTA PANEL (TABLO VE ARAMA)
-        // ===========================================================================
         JPanel pnlOrta = new JPanel(new BorderLayout(10, 10));
         pnlOrta.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
 
@@ -119,11 +104,6 @@ public class KitapEkrani extends JFrame {
 
         add(pnlOrta, BorderLayout.CENTER);
 
-        // ===========================================================================
-        // OLAYLAR (ACTIONS)
-        // ===========================================================================
-
-        // Tabloya Tıklama
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -149,37 +129,25 @@ public class KitapEkrani extends JFrame {
             kitaplariListele("");
             temizle();
         });
-
-        // Başlangıçta listele
         kitaplariListele("");
     }
-
-    // ===========================================================================
-    // VERİTABANI METOTLARI
-    // ===========================================================================
 
     private Connection baglantiAl() throws Exception {
         return DriverManager.getConnection("jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8", "root", "");
     }
 
-    // Mevcut 'kitaplariListele' metodunu bununla değiştir:
     private void kitaplariListele(String aranan) {
         try (Connection conn = baglantiAl()) {
 
-            // Eski SQL yerine artık Prosedür çağırıyoruz
             String sql = "{ call sp_KitapAra(?, ?) }";
             CallableStatement cs = conn.prepareCall(sql);
 
-            // 1. Parametre: Arama Metni (Metin kutusundan gelen)
             cs.setString(1, aranan);
 
-            // 2. Parametre: Kategori (Şimdilik 'Hepsi' gönderiyoruz, ileride filtre ekleyebilirsin)
-            // Eğer formdaki kategoriyi kullanmak istersen: cbKategori.getSelectedItem().toString() yazabilirsin.
             cs.setString(2, "Hepsi");
 
             ResultSet rs = cs.executeQuery();
 
-            // Tabloyu Temizle ve Doldur
             model.setRowCount(0);
             model.setColumnIdentifiers(new String[]{"ID", "Kitap Adı", "Yazar", "Kategori", "Yayınevi", "Yıl", "Toplam", "Mevcut"});
 

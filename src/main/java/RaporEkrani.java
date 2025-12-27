@@ -19,12 +19,10 @@ public class RaporEkrani extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // --- TABLO ---
         model = new DefaultTableModel();
         table = new JTable(model);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // --- ALT PANEL: EXCEL BUTONU ---
         JPanel pnlAlt = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnExcel = new JButton("Excel'e Aktar (CSV)");
         btnExcel.setBackground(new Color(34, 139, 34)); // Yeşil
@@ -33,21 +31,18 @@ public class RaporEkrani extends JFrame {
         add(pnlAlt, BorderLayout.SOUTH);
 
         tabs = new JTabbedPane();
-
-        // =================================================================
-        // SEKME 1: STATİK RAPORLAR
-        // =================================================================
+        //Statik Raporlar
         JPanel pnlStatik = new JPanel(new GridLayout(3, 1, 10, 10));
         pnlStatik.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // 1. Panel: Üye Özet
+        //Üye Özet
         JPanel pnlOzet = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
         pnlOzet.setBorder(BorderFactory.createTitledBorder("Üye Özet Raporu"));
         txtUyeID = new JTextField(10);
         JButton btnOzet = new JButton("Özet Getir");
         pnlOzet.add(new JLabel("Üye ID:")); pnlOzet.add(txtUyeID); pnlOzet.add(btnOzet);
 
-        // 2. Panel: Tarih Aralığı
+        //Tarih Aralığı
         JPanel pnlTarih = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
         pnlTarih.setBorder(BorderFactory.createTitledBorder("Tarih Aralığı Ödünç Raporu"));
         txtBaslangic = new JTextField("2024-01-01", 10);
@@ -56,20 +51,19 @@ public class RaporEkrani extends JFrame {
         pnlTarih.add(new JLabel("Başlangıç:")); pnlTarih.add(txtBaslangic);
         pnlTarih.add(new JLabel("Bitiş:")); pnlTarih.add(txtBitis); pnlTarih.add(btnTarih);
 
-        // 3. Panel: Hızlı Raporlar (Senin Eklediğin Kısım)
+        //Hızlı Raporlar
         JPanel pnlButonlar = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
         pnlButonlar.setBorder(BorderFactory.createTitledBorder("Hızlı Raporlar"));
 
         JButton btnGeciken = new JButton("Geciken Kitaplar");
-        btnGeciken.setBackground(new Color(220, 53, 69)); // Kırmızı
+        btnGeciken.setBackground(new Color(220, 53, 69));
         btnGeciken.setForeground(Color.WHITE);
 
         JButton btnPopuler = new JButton("En Çok Ödünç Alınanlar");
-        btnPopuler.setBackground(new Color(255, 193, 7)); // Sarı
+        btnPopuler.setBackground(new Color(255, 193, 7));
 
-        // --- YENİ BUTON (Eklediğin Bonus) ---
         JButton btnEnCokCeza = new JButton("En Çok Ceza Alan Üyeler");
-        btnEnCokCeza.setBackground(new Color(255, 69, 0)); // Turuncu
+        btnEnCokCeza.setBackground(new Color(255, 69, 0));
         btnEnCokCeza.setForeground(Color.WHITE);
 
         pnlButonlar.add(btnGeciken);
@@ -79,12 +73,8 @@ public class RaporEkrani extends JFrame {
         pnlStatik.add(pnlOzet); pnlStatik.add(pnlTarih); pnlStatik.add(pnlButonlar);
         tabs.addTab("Statik Raporlar", pnlStatik);
 
-        // =================================================================
-        // SEKME 2: DİNAMİK SORGU
-        // =================================================================
+        //Dinamik Sorgu
         JPanel pnlDinamik = new JPanel(new GridBagLayout());
-        // ... (Dinamik panel kodları aynı kalıyor) ...
-        // Kodun çok uzamaması için burayı özet geçtim, senin kodundaki ile aynı
         pnlDinamik.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
@@ -113,7 +103,6 @@ public class RaporEkrani extends JFrame {
         tabs.addTab("Dinamik Sorgu", pnlDinamik);
         add(tabs, BorderLayout.NORTH);
 
-        // --- AKSİYONLAR ---
         btnOzet.addActionListener(e -> uyeOzetGetir());
         btnTarih.addActionListener(e -> tarihRaporuGetir());
 
@@ -121,9 +110,7 @@ public class RaporEkrani extends JFrame {
 
         btnPopuler.addActionListener(e -> raporGetir("SELECT K.KitapAdi, K.Yazar, COUNT(O.OduncID) as OduncSayisi FROM ODUNC O JOIN KITAP K ON O.KitapID = K.KitapID GROUP BY K.KitapAdi, K.Yazar ORDER BY OduncSayisi DESC"));
 
-        // --- SENİN EKLEDİĞİN SÜPER SORGUN ---
         btnEnCokCeza.addActionListener(e -> {
-            // Eğer veri yoksa boş döner. Önce veri eklemelisin.
             String sql = "SELECT U.Ad, U.Soyad, SUM(C.Tutar) as Toplam_Ceza_TL, COUNT(C.CezaID) as Ceza_Sayisi " +
                     "FROM CEZA C " +
                     "JOIN UYE U ON C.UyeID = U.UyeID " +
@@ -136,12 +123,9 @@ public class RaporEkrani extends JFrame {
         btnExcel.addActionListener(e -> excelDisaAktar());
     }
 
-    // --- ANA MENÜ İÇİN GEREKLİ METOT ---
     public void sekmeSec(int index) {
         if (tabs != null) tabs.setSelectedIndex(index);
     }
-
-    // --- STANDART METOTLAR (Değişmedi) ---
     private void excelDisaAktar() {
         try (FileWriter fw = new FileWriter("Kutuphane_Rapor.csv")) {
             for (int i = 0; i < model.getColumnCount(); i++) fw.write(model.getColumnName(i) + ",");

@@ -17,7 +17,6 @@ public class TeslimAlmaEkrani extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
-        // --- FİLTRELEME KISMI ---
         JPanel pnlUst = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pnlUst.add(new JLabel("Filtrele (Üye/Kitap Adı):"));
         txtAra = new JTextField(20);
@@ -34,16 +33,13 @@ public class TeslimAlmaEkrani extends JFrame {
         pnlUst.add(btnYenile);
 
         add(pnlUst, BorderLayout.NORTH);
-
-        // --- TABLO ---
         model = new DefaultTableModel();
         model.setColumnIdentifiers(new String[]{"Ödünç ID", "Üye Adı", "Kitap Adı", "Veriliş Tarihi", "Son Teslim"});
         table = new JTable(model);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // --- TESLİM BUTONU ---
         JButton btnTeslim = new JButton("SEÇİLİ KİTABI TESLİM AL");
-        btnTeslim.setBackground(new Color(200, 100, 100)); // Kırmızı
+        btnTeslim.setBackground(new Color(200, 100, 100));
         btnTeslim.setForeground(Color.WHITE);
         btnTeslim.setFont(new Font("Arial", Font.BOLD, 14));
         btnTeslim.setPreferredSize(new Dimension(0, 50));
@@ -84,12 +80,10 @@ public class TeslimAlmaEkrani extends JFrame {
         int oduncID = (int) model.getValueAt(satir, 0);
 
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8", "root", "")) {
-            // 1. Teslim Prosedürü
             CallableStatement cs = conn.prepareCall("{ call sp_KitapTeslimAl(?) }");
             cs.setInt(1, oduncID);
             cs.execute();
 
-            // 2. Ceza Kontrolü (Bonus)
             PreparedStatement ps = conn.prepareStatement("SELECT Tutar, Aciklama FROM CEZA WHERE OduncID = ?");
             ps.setInt(1, oduncID);
             ResultSet rs = ps.executeQuery();
@@ -99,7 +93,7 @@ public class TeslimAlmaEkrani extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(this, "Kitap zamanında teslim alındı.");
             }
-            listele(""); // Listeyi güncelle
+            listele("");
 
         } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Hata: " + ex.getMessage()); }
     }

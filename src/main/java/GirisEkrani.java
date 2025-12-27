@@ -16,10 +16,9 @@ public class GirisEkrani extends JFrame {
         setTitle("Kütüphane Otomasyonu - Giriş");
         setSize(400, 250);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null); // Ekranın ortasında açılır
-        setLayout(null); // Özgür tasarım için null layout
+        setLocationRelativeTo(null);
+        setLayout(null);
 
-        // Etiketler ve Kutular
         JLabel lblKadi = new JLabel("Kullanıcı Adı:");
         lblKadi.setBounds(50, 50, 100, 30);
         add(lblKadi);
@@ -36,12 +35,10 @@ public class GirisEkrani extends JFrame {
         txtSifre.setBounds(150, 100, 150, 30);
         add(txtSifre);
 
-        // Giriş Butonu
         JButton btnGiris = new JButton("Giriş Yap");
         btnGiris.setBounds(150, 150, 150, 40);
         add(btnGiris);
 
-        // Butona Tıklanınca Ne Olacak?
         btnGiris.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -54,7 +51,7 @@ public class GirisEkrani extends JFrame {
         String kAdi = txtKullaniciAdi.getText();
         String sifre = new String(txtSifre.getPassword());
 
-        // Veritabanı Bağlantısı (Test kodundaki adresin aynısı)
+        //Veritabanı Bağlantısı
         String url = "jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8";
         String dbUser = "root";
         String dbPass = "";
@@ -62,7 +59,6 @@ public class GirisEkrani extends JFrame {
         try {
             Connection baglanti = DriverManager.getConnection(url, dbUser, dbPass);
 
-            // Kullanıcıyı sorguluyoruz
             String sql = "SELECT * FROM KULLANICI WHERE KullaniciAdi = ? AND Sifre = ?";
             PreparedStatement sorgu = baglanti.prepareStatement(sql);
             sorgu.setString(1, kAdi);
@@ -72,9 +68,8 @@ public class GirisEkrani extends JFrame {
 
             if (sonuc.next()) {
                 String rol = sonuc.getString("Rol");
-                // Mesajı kaldırdık, direkt açılsın
-                this.dispose(); // Giriş ekranını kapat
-                new AnaMenu(rol).setVisible(true); // Ana menüyü aç
+                this.dispose();
+                new AnaMenu(rol).setVisible(true);
             } else {
                 JOptionPane.showMessageDialog(this, "Hatalı Kullanıcı Adı veya Şifre!", "Hata", JOptionPane.ERROR_MESSAGE);
             }
@@ -87,7 +82,6 @@ public class GirisEkrani extends JFrame {
     }
 
     public static void main(String[] args) {
-        // Ekranı Başlat
         SwingUtilities.invokeLater(() -> {
             new GirisEkrani().setVisible(true);
         });

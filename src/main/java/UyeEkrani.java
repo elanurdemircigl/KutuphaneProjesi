@@ -6,7 +6,6 @@ public class UyeEkrani extends JFrame {
     private JTable table;
     private DefaultTableModel model;
 
-    // Veri Giriş Alanları
     private JTextField txtAd, txtSoyad, txtTelefon, txtEmail;
 
     public UyeEkrani() {
@@ -15,7 +14,6 @@ public class UyeEkrani extends JFrame {
         setLayout(null);
         setLocationRelativeTo(null);
 
-        // --- SOL TARAF: FORM ALANI ---
         JLabel lbl1 = new JLabel("Ad:");
         lbl1.setBounds(20, 20, 80, 25);
         add(lbl1);
@@ -48,7 +46,6 @@ public class UyeEkrani extends JFrame {
         txtEmail.setBounds(80, 110, 150, 25);
         add(txtEmail);
 
-        // --- BUTONLAR ---
         JButton btnEkle = new JButton("Üye Ekle");
         btnEkle.setBounds(20, 160, 100, 30);
         add(btnEkle);
@@ -70,7 +67,6 @@ public class UyeEkrani extends JFrame {
         btnAra.setBounds(460, 20, 60, 25);
         add(btnAra);
 
-        // --- SAĞ TARAF: TABLO (LİSTE) ---
         model = new DefaultTableModel();
         // Kolon Başlıkları
         model.setColumnIdentifiers(new String[]{"ID", "Ad", "Soyad", "Telefon", "Email", "Borç"});
@@ -80,16 +76,12 @@ public class UyeEkrani extends JFrame {
         scrollPane.setBounds(260, 60, 500, 380);
         add(scrollPane);
 
-        // --- İŞLEMLER ---
         btnEkle.addActionListener(e -> uyeEkle());
         btnSil.addActionListener(e -> uyeSil());
         btnAra.addActionListener(e -> uyeListele(txtAra.getText()));
 
-        // Açılışta listele
         uyeListele("");
     }
-
-    // --- VERİTABANI METOTLARI ---
     private Connection baglantiAl() throws Exception {
         String url = "jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8";
         return DriverManager.getConnection(url, "root", "");
@@ -169,8 +161,6 @@ public class UyeEkrani extends JFrame {
             }
 
         } catch (Exception ex) {
-            // BURADA TETİKLEYİCİ DEVREYE GİRECEK
-            // Eğer üyenin borcu varsa veritabanı hata verecek, biz de burada göstereceğiz.
             JOptionPane.showMessageDialog(this, "Silinemedi! (Borcu veya aktif ödüncü olabilir)\nDetay: " + ex.getMessage());
         }
     }
