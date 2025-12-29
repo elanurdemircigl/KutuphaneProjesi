@@ -1,11 +1,12 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.*;
 
 public class UyeEkrani extends JFrame {
     private JTable table;
     private DefaultTableModel model;
-
     private JTextField txtAd, txtSoyad, txtTelefon, txtEmail;
 
     public UyeEkrani() {
@@ -14,6 +15,7 @@ public class UyeEkrani extends JFrame {
         setLayout(null);
         setLocationRelativeTo(null);
 
+        // --- Giriş Alanları ---
         JLabel lbl1 = new JLabel("Ad:");
         lbl1.setBounds(20, 20, 80, 25);
         add(lbl1);
@@ -46,6 +48,7 @@ public class UyeEkrani extends JFrame {
         txtEmail.setBounds(80, 110, 150, 25);
         add(txtEmail);
 
+        // --- Butonlar ---
         JButton btnEkle = new JButton("Üye Ekle");
         btnEkle.setBounds(20, 160, 100, 30);
         add(btnEkle);
@@ -54,7 +57,12 @@ public class UyeEkrani extends JFrame {
         btnSil.setBounds(130, 160, 120, 30);
         add(btnSil);
 
-        // Arama Kutusu
+        // YENİ: Güncelleme Butonu
+        JButton btnGuncelle = new JButton("Güncelle");
+        btnGuncelle.setBounds(20, 200, 100, 30);
+        add(btnGuncelle);
+
+        // --- Arama Bölümü ---
         JLabel lblAra = new JLabel("Ara:");
         lblAra.setBounds(260, 20, 40, 25);
         add(lblAra);
@@ -67,8 +75,8 @@ public class UyeEkrani extends JFrame {
         btnAra.setBounds(460, 20, 60, 25);
         add(btnAra);
 
+        // --- Tablo Yapısı ---
         model = new DefaultTableModel();
-        // Kolon Başlıkları
         model.setColumnIdentifiers(new String[]{"ID", "Ad", "Soyad", "Telefon", "Email", "Borç"});
 
         table = new JTable(model);
@@ -76,13 +84,32 @@ public class UyeEkrani extends JFrame {
         scrollPane.setBounds(260, 60, 500, 380);
         add(scrollPane);
 
+        // --- Event Listeners (Olay Dinleyiciler) ---
+
         btnEkle.addActionListener(e -> uyeEkle());
         btnSil.addActionListener(e -> uyeSil());
+        btnGuncelle.addActionListener(e -> uyeGuncelle());
         btnAra.addActionListener(e -> uyeListele(txtAra.getText()));
+
+        // YENİ: Tabloya tıklayınca verileri kutulara doldur
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int seciliSatir = table.getSelectedRow();
+                if (seciliSatir != -1) {
+                    txtAd.setText(model.getValueAt(seciliSatir, 1).toString());
+                    txtSoyad.setText(model.getValueAt(seciliSatir, 2).toString());
+                    txtTelefon.setText(model.getValueAt(seciliSatir, 3).toString());
+                    txtEmail.setText(model.getValueAt(seciliSatir, 4).toString());
+                }
+            }
+        });
 
         uyeListele("");
     }
+
     private Connection baglantiAl() throws Exception {
+        // Not: Veritabanı ismindeki Türkçe karakterlere (ü) dikkat et, phpMyAdmin'dekiyle aynı olmalı.
         String url = "jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8";
         return DriverManager.getConnection(url, "root", "");
     }
@@ -91,12 +118,10 @@ public class UyeEkrani extends JFrame {
         try {
             model.setRowCount(0);
             Connection conn = baglantiAl();
-
-            String sql = "SELECT * FROM UYE WHERE Ad LIKE ? OR Soyad LIKE ?";
+            String sql = "SELECT * FROM uye WHERE Ad LIKE ? OR Soyad LIKE ?";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, "%" + aranan + "%");
             ps.setString(2, "%" + aranan + "%");
-
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -111,16 +136,15 @@ public class UyeEkrani extends JFrame {
             }
             conn.close();
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Hata: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Listeleme Hatası: " + ex.getMessage());
         }
     }
 
     private void uyeEkle() {
         try {
             Connection conn = baglantiAl();
-            String sql = "INSERT INTO UYE (Ad, Soyad, Telefon, Email) VALUES (?, ?, ?, ?)";
+            String sql = "INSERT INTO uye (Ad, Soyad, Telefon, Email) VALUES (?, ?, ?, ?)";
             PreparedStatement ps = conn.prepareStatement(sql);
-
             ps.setString(1, txtAd.getText());
             ps.setString(2, txtSoyad.getText());
             ps.setString(3, txtTelefon.getText());
@@ -128,12 +152,41 @@ public class UyeEkrani extends JFrame {
 
             ps.executeUpdate();
             conn.close();
-
-            JOptionPane.showMessageDialog(this, "Üye Eklendi!");
+            JOptionPane.showMessageDialog(this, "Üye Başarıyla Eklendi!");
             uyeListele("");
-
+            formuTemizle();
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Hata: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Ekleme Hatası: " + ex.getMessage());
+        }
+    }
+
+    // YENİ: Güncelleme Metodu
+    private void uyeGuncelle() {
+        int seciliSatir = table.getSelectedRow();
+        if (seciliSatir == -1) {
+            JOptionPane.showMessageDialog(this, "Lütfen güncellemek için tablodan bir üye seçin.");
+            return;
+        }
+
+        int id = (int) model.getValueAt(seciliSatir, 0);
+
+        try {
+            Connection conn = baglantiAl();
+            String sql = "UPDATE uye SET Ad=?, Soyad=?, Telefon=?, Email=? WHERE UyeID=?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, txtAd.getText());
+            ps.setString(2, txtSoyad.getText());
+            ps.setString(3, txtTelefon.getText());
+            ps.setString(4, txtEmail.getText());
+            ps.setInt(5, id);
+
+            ps.executeUpdate();
+            conn.close();
+            JOptionPane.showMessageDialog(this, "Üye Bilgileri Güncellendi!");
+            uyeListele("");
+            formuTemizle();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Güncelleme Hatası: " + ex.getMessage());
         }
     }
 
@@ -148,20 +201,26 @@ public class UyeEkrani extends JFrame {
 
         try {
             Connection conn = baglantiAl();
-            String sql = "DELETE FROM UYE WHERE UyeID = ?";
+            String sql = "DELETE FROM uye WHERE UyeID = ?";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
 
-            int sonuc = ps.executeUpdate();
+            ps.executeUpdate();
             conn.close();
-
-            if (sonuc > 0) {
-                JOptionPane.showMessageDialog(this, "Üye Silindi.");
-                uyeListele("");
-            }
-
+            JOptionPane.showMessageDialog(this, "Üye Silindi.");
+            uyeListele("");
+            formuTemizle();
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Silinemedi! (Borcu veya aktif ödüncü olabilir)\nDetay: " + ex.getMessage());
+            // Tetikleyici (Trigger) burada devreye girerse hata mesajı gösterilir
+            JOptionPane.showMessageDialog(this, "Silinemedi! Borcu veya aktif kaydı olabilir.\nDetay: " + ex.getMessage());
         }
+    }
+
+    private void formuTemizle() {
+        txtAd.setText("");
+        txtSoyad.setText("");
+        txtTelefon.setText("");
+        txtEmail.setText("");
+        table.clearSelection();
     }
 }
