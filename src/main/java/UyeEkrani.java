@@ -15,7 +15,7 @@ public class UyeEkrani extends JFrame {
         setLayout(null);
         setLocationRelativeTo(null);
 
-        // --- Giriş Alanları ---
+        //Giriş Alanları
         JLabel lbl1 = new JLabel("Ad:");
         lbl1.setBounds(20, 20, 80, 25);
         add(lbl1);
@@ -48,7 +48,7 @@ public class UyeEkrani extends JFrame {
         txtEmail.setBounds(80, 110, 150, 25);
         add(txtEmail);
 
-        // --- Butonlar ---
+        //Butonlar
         JButton btnEkle = new JButton("Üye Ekle");
         btnEkle.setBounds(20, 160, 100, 30);
         add(btnEkle);
@@ -61,7 +61,7 @@ public class UyeEkrani extends JFrame {
         btnGuncelle.setBounds(20, 200, 100, 30);
         add(btnGuncelle);
 
-        // --- Arama Bölümü ---
+        //Arama Bölümü
         JLabel lblAra = new JLabel("Ara:");
         lblAra.setBounds(260, 20, 40, 25);
         add(lblAra);
@@ -74,7 +74,7 @@ public class UyeEkrani extends JFrame {
         btnAra.setBounds(460, 20, 60, 25);
         add(btnAra);
 
-        // --- Tablo Yapısı ---
+        //Tablo Yapısı
         model = new DefaultTableModel();
         model.setColumnIdentifiers(new String[]{"ID", "Ad", "Soyad", "Telefon", "Email", "Borç"});
 
@@ -83,7 +83,7 @@ public class UyeEkrani extends JFrame {
         scrollPane.setBounds(260, 60, 500, 380);
         add(scrollPane);
 
-        // --- Olay Dinleyiciler ---
+        //Dinleyiciler
         btnEkle.addActionListener(e -> uyeEkle());
         btnSil.addActionListener(e -> uyeSil());
         btnGuncelle.addActionListener(e -> uyeGuncelle());
@@ -103,11 +103,10 @@ public class UyeEkrani extends JFrame {
             }
         });
 
-        uyeListele(""); // Başlangıçta tüm üyeleri getir
+        uyeListele("");
     }
 
-    private Connection baglantiAl() throws Exception {
-        // 'kutuphanedb' olan hata 'kütüphanedb' olarak düzeltildi
+    private Connection baglanti() throws Exception {
         String url = "jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8";
         return DriverManager.getConnection(url, "root", "");
     }
@@ -115,8 +114,7 @@ public class UyeEkrani extends JFrame {
     private void uyeListele(String aranan) {
         try {
             model.setRowCount(0);
-            Connection conn = baglantiAl();
-            // Arama sorgusu Ad, Soyad ve Email kolonlarını kapsayacak şekilde güncellendi
+            Connection conn = baglanti();
             String sql = "SELECT * FROM uye WHERE Ad LIKE ? OR Soyad LIKE ? OR Email LIKE ?";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, "%" + aranan + "%");
@@ -142,7 +140,7 @@ public class UyeEkrani extends JFrame {
 
     private void uyeEkle() {
         try {
-            Connection conn = baglantiAl();
+            Connection conn = baglanti();
             String sql = "INSERT INTO uye (Ad, Soyad, Telefon, Email) VALUES (?, ?, ?, ?)";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, txtAd.getText());
@@ -170,7 +168,7 @@ public class UyeEkrani extends JFrame {
         int id = (int) model.getValueAt(seciliSatir, 0);
 
         try {
-            Connection conn = baglantiAl();
+            Connection conn = baglanti();
             String sql = "UPDATE uye SET Ad=?, Soyad=?, Telefon=?, Email=? WHERE UyeID=?";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, txtAd.getText());
@@ -199,7 +197,7 @@ public class UyeEkrani extends JFrame {
         int id = (int) model.getValueAt(seciliSatir, 0);
 
         try {
-            Connection conn = baglantiAl();
+            Connection conn = baglanti();
             String sql = "DELETE FROM uye WHERE UyeID = ?";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
@@ -210,7 +208,6 @@ public class UyeEkrani extends JFrame {
             uyeListele("");
             formuTemizle();
         } catch (Exception ex) {
-            // Veritabanındaki TR_UYE_DELETE_BLOCK tetikleyicisi burada devreye girer
             JOptionPane.showMessageDialog(this, "Silinemedi! Borcu veya aktif kaydı olabilir.\nDetay: " + ex.getMessage());
         }
     }
