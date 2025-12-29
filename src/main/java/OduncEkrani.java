@@ -68,7 +68,7 @@ public class OduncEkrani extends JFrame {
             return;
         }
 
-        try (Connection conn = baglantiAl()) {
+        try (Connection conn = baglanti()) {
             String sql = "SELECT K.KitapAdi, O.SonTeslimTarihi " +
                     "FROM ODUNC O " +
                     "JOIN KITAP K ON O.KitapID = K.KitapID " +
@@ -98,7 +98,7 @@ public class OduncEkrani extends JFrame {
     }
 
     private void islemOduncVer() {
-        try (Connection conn = baglantiAl()) {
+        try (Connection conn = baglanti()) {
             String sql = "{ call sp_YeniOduncVer(?, ?, ?) }";
             CallableStatement cstmt = conn.prepareCall(sql);
             cstmt.setInt(1, Integer.parseInt(txtUyeID.getText()));
@@ -116,7 +116,7 @@ public class OduncEkrani extends JFrame {
         }
     }
 
-    private Connection baglantiAl() throws Exception {
+    private Connection baglanti() throws Exception {
         return DriverManager.getConnection("jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8", "root", "");
     }
 }

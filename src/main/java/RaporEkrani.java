@@ -169,13 +169,13 @@ public class RaporEkrani extends JFrame {
         } catch (IOException ex) { JOptionPane.showMessageDialog(this, "Hata: " + ex.getMessage()); }
     }
 
-    private Connection baglantiAl() throws Exception {
+    private Connection baglanti() throws Exception {
         return DriverManager.getConnection("jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8", "root", "");
     }
 
     private void uyeOzetGetir() {
         if(txtUyeID.getText().isEmpty()) return;
-        try (Connection conn = baglantiAl(); CallableStatement cs = conn.prepareCall("{call sp_UyeOzetRapor(?)}")) {
+        try (Connection conn = baglanti(); CallableStatement cs = conn.prepareCall("{call sp_UyeOzetRapor(?)}")) {
             cs.setInt(1, Integer.parseInt(txtUyeID.getText()));
             tabloyuDoldur(cs.executeQuery());
         } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Hata: " + ex.getMessage()); }
@@ -183,7 +183,7 @@ public class RaporEkrani extends JFrame {
 
     private void tarihRaporuGetir() {
         String sql = "SELECT U.Ad, U.Soyad, K.KitapAdi, O.OduncTarihi, O.SonTeslimTarihi FROM ODUNC O JOIN UYE U ON O.UyeID = U.UyeID JOIN KITAP K ON O.KitapID = K.KitapID WHERE O.OduncTarihi BETWEEN ? AND ?";
-        try (Connection conn = baglantiAl(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = baglanti(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, txtBaslangic.getText()); ps.setString(2, txtBitis.getText());
             tabloyuDoldur(ps.executeQuery());
         } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Hata: " + ex.getMessage()); }
@@ -201,7 +201,7 @@ public class RaporEkrani extends JFrame {
     }
 
     private void raporGetir(String sql) {
-        try (Connection conn = baglantiAl(); Statement stmt = conn.createStatement()) {
+        try (Connection conn = baglanti(); Statement stmt = conn.createStatement()) {
             tabloyuDoldur(stmt.executeQuery(sql));
         } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Hata: " + ex.getMessage()); }
     }
