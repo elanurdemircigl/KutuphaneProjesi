@@ -57,7 +57,6 @@ public class UyeEkrani extends JFrame {
         btnSil.setBounds(130, 160, 120, 30);
         add(btnSil);
 
-        // YENİ: Güncelleme Butonu
         JButton btnGuncelle = new JButton("Güncelle");
         btnGuncelle.setBounds(20, 200, 100, 30);
         add(btnGuncelle);
@@ -84,14 +83,13 @@ public class UyeEkrani extends JFrame {
         scrollPane.setBounds(260, 60, 500, 380);
         add(scrollPane);
 
-        // --- Event Listeners (Olay Dinleyiciler) ---
-
+        // --- Olay Dinleyiciler ---
         btnEkle.addActionListener(e -> uyeEkle());
         btnSil.addActionListener(e -> uyeSil());
         btnGuncelle.addActionListener(e -> uyeGuncelle());
         btnAra.addActionListener(e -> uyeListele(txtAra.getText()));
 
-        // YENİ: Tabloya tıklayınca verileri kutulara doldur
+        // Tabloya tıklayınca verileri kutulara doldurma özelliği
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -105,11 +103,11 @@ public class UyeEkrani extends JFrame {
             }
         });
 
-        uyeListele("");
+        uyeListele(""); // Başlangıçta tüm üyeleri getir
     }
 
     private Connection baglantiAl() throws Exception {
-        // Not: Veritabanı ismindeki Türkçe karakterlere (ü) dikkat et, phpMyAdmin'dekiyle aynı olmalı.
+        // 'kutuphanedb' olan hata 'kütüphanedb' olarak düzeltildi
         String url = "jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8";
         return DriverManager.getConnection(url, "root", "");
     }
@@ -118,10 +116,12 @@ public class UyeEkrani extends JFrame {
         try {
             model.setRowCount(0);
             Connection conn = baglantiAl();
-            String sql = "SELECT * FROM uye WHERE Ad LIKE ? OR Soyad LIKE ?";
+            // Arama sorgusu Ad, Soyad ve Email kolonlarını kapsayacak şekilde güncellendi
+            String sql = "SELECT * FROM uye WHERE Ad LIKE ? OR Soyad LIKE ? OR Email LIKE ?";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, "%" + aranan + "%");
             ps.setString(2, "%" + aranan + "%");
+            ps.setString(3, "%" + aranan + "%");
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -160,7 +160,6 @@ public class UyeEkrani extends JFrame {
         }
     }
 
-    // YENİ: Güncelleme Metodu
     private void uyeGuncelle() {
         int seciliSatir = table.getSelectedRow();
         if (seciliSatir == -1) {
@@ -211,7 +210,7 @@ public class UyeEkrani extends JFrame {
             uyeListele("");
             formuTemizle();
         } catch (Exception ex) {
-            // Tetikleyici (Trigger) burada devreye girerse hata mesajı gösterilir
+            // Veritabanındaki TR_UYE_DELETE_BLOCK tetikleyicisi burada devreye girer
             JOptionPane.showMessageDialog(this, "Silinemedi! Borcu veya aktif kaydı olabilir.\nDetay: " + ex.getMessage());
         }
     }
