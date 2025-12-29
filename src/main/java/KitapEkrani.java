@@ -132,12 +132,12 @@ public class KitapEkrani extends JFrame {
         kitaplariListele("");
     }
 
-    private Connection baglantiAl() throws Exception {
+    private Connection baglanti() throws Exception {
         return DriverManager.getConnection("jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8", "root", "");
     }
 
     private void kitaplariListele(String aranan) {
-        try (Connection conn = baglantiAl()) {
+        try (Connection conn = baglanti()) {
 
             String sql = "{ call sp_KitapAra(?, ?) }";
             CallableStatement cs = conn.prepareCall(sql);
@@ -169,7 +169,7 @@ public class KitapEkrani extends JFrame {
     }
 
     private void kitapEkle() {
-        try (Connection conn = baglantiAl()) {
+        try (Connection conn = baglanti()) {
             String sql = "INSERT INTO KITAP (KitapAdi, Yazar, Kategori, Yayinevi, BasimYili, ToplamAdet, MevcutAdet) VALUES (?,?,?,?,?,?,?)";
             PreparedStatement ps = conn.prepareStatement(sql);
 
@@ -196,7 +196,7 @@ public class KitapEkrani extends JFrame {
             JOptionPane.showMessageDialog(this, "Lütfen tablodan bir kitap seçin.");
             return;
         }
-        try (Connection conn = baglantiAl()) {
+        try (Connection conn = baglanti()) {
             String sql = "UPDATE KITAP SET KitapAdi=?, Yazar=?, Kategori=?, Yayinevi=?, BasimYili=?, ToplamAdet=? WHERE KitapID=?";
             PreparedStatement ps = conn.prepareStatement(sql);
 
@@ -226,7 +226,7 @@ public class KitapEkrani extends JFrame {
         int onay = JOptionPane.showConfirmDialog(this, "Kitabı silmek istediğinize emin misiniz?", "Onay", JOptionPane.YES_NO_OPTION);
         if (onay != JOptionPane.YES_OPTION) return;
 
-        try (Connection conn = baglantiAl()) {
+        try (Connection conn = baglanti()) {
             String sql = "DELETE FROM KITAP WHERE KitapID=?";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, secilenKitapID);
