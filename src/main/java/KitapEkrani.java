@@ -34,6 +34,7 @@ public class KitapEkrani extends JFrame {
         pnlForm.add(txtYazar);
 
         pnlForm.add(new JLabel("Kategori:"));
+        // NOT: Bu isimlerin veritabanındaki KATEGORI tablosunda aynen yazılı olması gerekir!
         String[] kategoriler = {"Roman", "Bilim", "Tarih", "Yazılım", "Felsefe", "Çocuk", "Diğer"};
         cbKategori = new JComboBox<>(kategoriler);
         cbKategori.setBackground(Color.WHITE);
@@ -112,6 +113,7 @@ public class KitapEkrani extends JFrame {
                     secilenKitapID = (int) model.getValueAt(satir, 0);
                     txtAd.setText(model.getValueAt(satir, 1).toString());
                     txtYazar.setText(model.getValueAt(satir, 2).toString());
+                    // Tablodan gelen kategori ismini combobox'ta seçili hale getir
                     cbKategori.setSelectedItem(model.getValueAt(satir, 3).toString());
                     txtYayinevi.setText(model.getValueAt(satir, 4).toString());
                     txtYil.setText(model.getValueAt(satir, 5).toString());
@@ -129,11 +131,31 @@ public class KitapEkrani extends JFrame {
             kitaplariListele("");
             temizle();
         });
+
+        // Başlangıçta listele
         kitaplariListele("");
     }
 
     private Connection baglanti() throws Exception {
         return DriverManager.getConnection("jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8", "root", "");
+    }
+
+    // --- YENİ EKLENEN YARDIMCI METOT ---
+    // Veritabanından isme göre ID bulur.
+    private int kategoriIdBul(String kategoriAdi) {
+        int id = 0;
+        try (Connection conn = baglanti()) {
+            String sql = "SELECT KategoriID FROM KATEGORI WHERE KategoriAdi = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, kategoriAdi);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                id = rs.getInt("KategoriID");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return id;
     }
 
     private void kitaplariListele(String aranan) {
@@ -144,7 +166,8 @@ public class KitapEkrani extends JFrame {
 
             cs.setString(1, aranan);
 
-            cs.setString(2, "Hepsi");
+            // --- DÜZELTME: Artık String 'Hepsi' değil, int 0 gönderiyoruz ---
+            cs.setInt(2, 0);
 
             ResultSet rs = cs.executeQuery();
 
@@ -156,7 +179,8 @@ public class KitapEkrani extends JFrame {
                         rs.getInt("KitapID"),
                         rs.getString("KitapAdi"),
                         rs.getString("Yazar"),
-                        rs.getString("Kategori"),
+                        // --- DÜZELTME: SP'den gelen sütun adı 'KategoriAdi' oldu ---
+                        rs.getString("KategoriAdi"),
                         rs.getString("Yayinevi"),
                         rs.getInt("BasimYili"),
                         rs.getInt("ToplamAdet"),
@@ -170,12 +194,21 @@ public class KitapEkrani extends JFrame {
 
     private void kitapEkle() {
         try (Connection conn = baglanti()) {
-            String sql = "INSERT INTO KITAP (KitapAdi, Yazar, Kategori, Yayinevi, BasimYili, ToplamAdet, MevcutAdet) VALUES (?,?,?,?,?,?,?)";
+            // --- DÜZELTME: Sütun adı KategoriID oldu ---
+            String sql = "INSERT INTO KITAP (KitapAdi, Yazar, KategoriID, Yayinevi, BasimYili, ToplamAdet, MevcutAdet) VALUES (?,?,?,?,?,?,?)";
             PreparedStatement ps = conn.prepareStatement(sql);
 
             ps.setString(1, txtAd.getText());
             ps.setString(2, txtYazar.getText());
-            ps.setString(3, cbKategori.getSelectedItem().toString());
+
+            // --- DÜZELTME: İsmi ID'ye çevirip kaydediyoruz ---
+            int kID = kategoriIdBul(cbKategori.getSelectedItem().toString());
+            if (kID == 0) {
+                JOptionPane.showMessageDialog(this, "Hata: Seçilen kategori veritabanında bulunamadı!");
+                return;
+            }
+            ps.setInt(3, kID);
+
             ps.setString(4, txtYayinevi.getText());
             ps.setInt(5, Integer.parseInt(txtYil.getText()));
             int adet = Integer.parseInt(txtAdet.getText());
@@ -197,12 +230,21 @@ public class KitapEkrani extends JFrame {
             return;
         }
         try (Connection conn = baglanti()) {
-            String sql = "UPDATE KITAP SET KitapAdi=?, Yazar=?, Kategori=?, Yayinevi=?, BasimYili=?, ToplamAdet=? WHERE KitapID=?";
+            // --- DÜZELTME: Sütun adı KategoriID oldu ---
+            String sql = "UPDATE KITAP SET KitapAdi=?, Yazar=?, KategoriID=?, Yayinevi=?, BasimYili=?, ToplamAdet=? WHERE KitapID=?";
             PreparedStatement ps = conn.prepareStatement(sql);
 
             ps.setString(1, txtAd.getText());
             ps.setString(2, txtYazar.getText());
-            ps.setString(3, cbKategori.getSelectedItem().toString());
+
+            // --- DÜZELTME: İsmi ID'ye çevirip güncelliyoruz ---
+            int kID = kategoriIdBul(cbKategori.getSelectedItem().toString());
+            if (kID == 0) {
+                JOptionPane.showMessageDialog(this, "Hata: Seçilen kategori veritabanında bulunamadı!");
+                return;
+            }
+            ps.setInt(3, kID);
+
             ps.setString(4, txtYayinevi.getText());
             ps.setInt(5, Integer.parseInt(txtYil.getText()));
             ps.setInt(6, Integer.parseInt(txtAdet.getText()));
