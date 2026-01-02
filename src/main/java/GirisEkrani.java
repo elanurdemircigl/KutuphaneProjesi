@@ -1,3 +1,4 @@
+import com.formdev.flatlaf.FlatDarkLaf; // FlatLaf Importu
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -71,13 +72,14 @@ public class GirisEkrani extends JFrame {
             if (sonuc.next()) {
                 String rol = sonuc.getString("Rol");
 
-                // İstediğin Mesaj Kutusu:
+                // Giriş Başarılı Mesajı
                 JOptionPane.showMessageDialog(this,
                         "Giriş Başarılı! Rol: " + rol,
                         "Message",
                         JOptionPane.INFORMATION_MESSAGE);
 
                 this.dispose();
+                // AnaMenu sınıfına rol bilgisini gönderiyoruz
                 new AnaMenu(rol).setVisible(true);
             } else {
                 JOptionPane.showMessageDialog(this, "Hatalı Kullanıcı Adı veya Şifre!", "Hata", JOptionPane.ERROR_MESSAGE);
@@ -91,12 +93,16 @@ public class GirisEkrani extends JFrame {
     }
 
     public static void main(String[] args) {
-        // --- WINDOWS VE MAC ARASI GÖRÜNÜMÜ DÜZENLEYEN KISIM ---
+        // --- KARANLIK MOD VE GÖRÜNÜM AYARI ---
         try {
-            // Sistemin kendi görünümünü (Windows ise Windows, Mac ise Mac stili) yükler
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
+            // FlatLaf Karanlık Temayı başlatır
+            FlatDarkLaf.setup();
+
+            // Pencere başlık çubuğunun temayla uyumlu olmasını sağlar
+            UIManager.put("TitlePane.unifiedBackground", true);
+
+        } catch (Exception ex) {
+            System.err.println("FlatLaf yükleme hatası: " + ex.getMessage());
         }
 
         SwingUtilities.invokeLater(() -> {
