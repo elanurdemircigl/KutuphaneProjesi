@@ -1,9 +1,11 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.print.PrinterException; // Yazdırma hatası için eklendi
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.*;
+import java.text.MessageFormat; // Başlık yazdırmak için eklendi
 
 public class RaporEkrani extends JFrame {
     private JTable table;
@@ -32,6 +34,7 @@ public class RaporEkrani extends JFrame {
 
         tabs = new JTabbedPane();
 
+        // --- STATİK RAPORLAR ---
         JPanel pnlStatik = new JPanel(new GridLayout(3, 1, 10, 10));
         pnlStatik.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -70,6 +73,7 @@ public class RaporEkrani extends JFrame {
         pnlStatik.add(pnlOzet); pnlStatik.add(pnlTarih); pnlStatik.add(pnlButonlar);
         tabs.addTab("Statik Raporlar", pnlStatik);
 
+        // --- DİNAMİK SORGU ---
         JPanel pnlDinamik = new JPanel(new GridBagLayout());
         pnlDinamik.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         GridBagConstraints gbc = new GridBagConstraints();
@@ -125,15 +129,24 @@ public class RaporEkrani extends JFrame {
         txtYilMax.setPreferredSize(txtBoyut);
         pnlDinamik.add(txtYilMax, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 4; gbc.ipady = 15;
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 4; gbc.ipady = 10;
         JButton btnDinamik = new JButton("DİNAMİK ARA");
         btnDinamik.setBackground(new Color(0, 123, 255));
         btnDinamik.setForeground(Color.WHITE);
         pnlDinamik.add(btnDinamik, gbc);
 
+        // --- YENİ EKLENEN KISIM: YAZDIR BUTONU ---
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 4; gbc.ipady = 10;
+        JButton btnYazdir = new JButton("Raporu Yazdır (PDF)");
+        btnYazdir.setBackground(new Color(108, 117, 125)); // Gri ton
+        btnYazdir.setForeground(Color.WHITE);
+        pnlDinamik.add(btnYazdir, gbc);
+        // ----------------------------------------
+
         tabs.addTab("Dinamik Sorgu", pnlDinamik);
         add(tabs, BorderLayout.NORTH);
 
+        // Olay Dinleyicileri
         btnOzet.addActionListener(e -> uyeOzetGetir());
         btnTarih.addActionListener(e -> tarihRaporuGetir());
 
@@ -152,11 +165,29 @@ public class RaporEkrani extends JFrame {
 
         btnDinamik.addActionListener(e -> dinamikAramaYap());
         btnExcel.addActionListener(e -> excelDisaAktar());
+
+        // --- YENİ EKLENEN YAZDIRMA FONKSİYONU ---
+        btnYazdir.addActionListener(e -> {
+            try {
+                // Tabloyu yazdırma komutu (Başlık ve Sayfa numarası ekler)
+                boolean complete = table.print(JTable.PrintMode.FIT_WIDTH,
+                        new MessageFormat("Arama Sonuçları Raporu"),
+                        new MessageFormat("Sayfa - {0}"));
+                if (complete) {
+                    JOptionPane.showMessageDialog(this, "Yazdırma işlemi tamamlandı!");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Yazdırma iptal edildi.");
+                }
+            } catch (PrinterException ex) {
+                JOptionPane.showMessageDialog(this, "Yazdırma Hatası: " + ex.getMessage());
+            }
+        });
     }
 
     public void sekmeSec(int index) {
         if (tabs != null) tabs.setSelectedIndex(index);
     }
+
     private void excelDisaAktar() {
         try (FileWriter fw = new FileWriter("Kutuphane_Rapor.csv")) {
             for (int i = 0; i < model.getColumnCount(); i++) fw.write(model.getColumnName(i) + ",");
