@@ -19,6 +19,7 @@ public class GirisEkrani extends JFrame {
         setLocationRelativeTo(null);
         setLayout(null);
 
+        // Kullanıcı Adı Bileşenleri
         JLabel lblKadi = new JLabel("Kullanıcı Adı:");
         lblKadi.setBounds(50, 50, 100, 30);
         add(lblKadi);
@@ -27,6 +28,7 @@ public class GirisEkrani extends JFrame {
         txtKullaniciAdi.setBounds(150, 50, 150, 30);
         add(txtKullaniciAdi);
 
+        // Şifre Bileşenleri
         JLabel lblSifre = new JLabel("Şifre:");
         lblSifre.setBounds(50, 100, 100, 30);
         add(lblSifre);
@@ -35,10 +37,12 @@ public class GirisEkrani extends JFrame {
         txtSifre.setBounds(150, 100, 150, 30);
         add(txtSifre);
 
+        // Giriş Butonu
         JButton btnGiris = new JButton("Giriş Yap");
         btnGiris.setBounds(150, 150, 150, 40);
         add(btnGiris);
 
+        // Buton Tıklama Olayı
         btnGiris.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -51,7 +55,7 @@ public class GirisEkrani extends JFrame {
         String kAdi = txtKullaniciAdi.getText();
         String sifre = new String(txtSifre.getPassword());
 
-        //Veritabanı Bağlantısı
+        // Veritabanı Bağlantı Bilgileri
         String url = "jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8";
         String dbUser = "root";
         String dbPass = "";
@@ -59,6 +63,7 @@ public class GirisEkrani extends JFrame {
         try {
             Connection baglanti = DriverManager.getConnection(url, dbUser, dbPass);
 
+            // SQL Sorgusu
             String sql = "SELECT * FROM KULLANICI WHERE KullaniciAdi = ? AND Sifre = ?";
             PreparedStatement sorgu = baglanti.prepareStatement(sql);
             sorgu.setString(1, kAdi);
@@ -67,11 +72,24 @@ public class GirisEkrani extends JFrame {
             ResultSet sonuc = sorgu.executeQuery();
 
             if (sonuc.next()) {
+                // Giriş Başarılı ise Rolü Alıyoruz
                 String rol = sonuc.getString("Rol");
+
+                // --- GÜNCELLEDİĞİMİZ MESAJ KUTUSU ---
+                JOptionPane.showMessageDialog(this,
+                        "Giriş Başarılı! Rol: " + rol,
+                        "Message",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                // Mevcut ekranı kapat ve Ana Menüyü aç
                 this.dispose();
                 new AnaMenu(rol).setVisible(true);
             } else {
-                JOptionPane.showMessageDialog(this, "Hatalı Kullanıcı Adı veya Şifre!", "Hata", JOptionPane.ERROR_MESSAGE);
+                // Hatalı Giriş Durumu
+                JOptionPane.showMessageDialog(this,
+                        "Hatalı Kullanıcı Adı veya Şifre!",
+                        "Hata",
+                        JOptionPane.ERROR_MESSAGE);
             }
 
             baglanti.close();
@@ -82,6 +100,13 @@ public class GirisEkrani extends JFrame {
     }
 
     public static void main(String[] args) {
+        // Look and Feel ayarı (Sistemin kendi pencere stilini kullanması için - Opsiyonel)
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         SwingUtilities.invokeLater(() -> {
             new GirisEkrani().setVisible(true);
         });
