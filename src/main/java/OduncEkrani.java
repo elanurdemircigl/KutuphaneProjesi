@@ -17,6 +17,7 @@ public class OduncEkrani extends JFrame {
 
         Dimension txtBoyut = new Dimension(130, 25);
 
+        // Üye ID Bölümü
         JPanel pnlUyeSatir = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         txtUyeID = new JTextField();
         txtUyeID.setPreferredSize(txtBoyut);
@@ -33,19 +34,23 @@ public class OduncEkrani extends JFrame {
         pnlForm.add(new JLabel("Üye ID:"));
         pnlForm.add(pnlUyeSatir);
 
+        // Kitap ID Bölümü
         pnlForm.add(new JLabel("Kitap ID:"));
-        txtKitapID = new JTextField(); txtKitapID.setPreferredSize(txtBoyut);
+        txtKitapID = new JTextField();
+        txtKitapID.setPreferredSize(txtBoyut);
         pnlForm.add(txtKitapID);
 
+        // Personel ID Bölümü (Veritabanındaki KullaniciID'ye karşılık gelir)
         pnlForm.add(new JLabel("Personel ID:"));
         txtPersonelID = new JTextField("1");
         txtPersonelID.setEditable(false);
         txtPersonelID.setPreferredSize(txtBoyut);
         pnlForm.add(txtPersonelID);
 
+        pnlForm.add(new JLabel(""));
+        pnlForm.add(new JLabel(""));
 
-        pnlForm.add(new JLabel("")); pnlForm.add(new JLabel(""));
-
+        // Ödünç Ver Butonu
         JButton btnVer = new JButton("ÖDÜNÇ VER");
         btnVer.setBackground(new Color(100, 200, 100));
         btnVer.setForeground(Color.WHITE);
@@ -89,7 +94,7 @@ public class OduncEkrani extends JFrame {
             if (sayac == 0) {
                 JOptionPane.showMessageDialog(this, "Bu üyenin üzerinde kitap yok.");
             } else {
-                mesaj.append("\nToplam: ").append(sayac).append(" / 3 (Limit)");
+                mesaj.append("\nToplam: ").append(sayac).append(" / 5 (Limit)");
                 JOptionPane.showMessageDialog(this, mesaj.toString());
             }
         } catch (Exception ex) {
@@ -99,24 +104,34 @@ public class OduncEkrani extends JFrame {
 
     private void islemOduncVer() {
         try (Connection conn = baglanti()) {
+            // Prosedürü çağırıyoruz
             String sql = "{ call sp_YeniOduncVer(?, ?, ?) }";
             CallableStatement cstmt = conn.prepareCall(sql);
+
             cstmt.setInt(1, Integer.parseInt(txtUyeID.getText()));
             cstmt.setInt(2, Integer.parseInt(txtKitapID.getText()));
             cstmt.setInt(3, Integer.parseInt(txtPersonelID.getText()));
 
             cstmt.execute();
             JOptionPane.showMessageDialog(this, "İşlem Başarılı! Kitap ödünç verildi.");
-            txtUyeID.setText(""); txtKitapID.setText("");
+
+            // Başarılıysa alanları temizle
+            txtUyeID.setText("");
+            txtKitapID.setText("");
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "HATA: " + ex.getMessage());
+            // Veritabanındaki tüm hataları (stok yok, limit doldu) burada yakalarız
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Message", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Giriş Hatası: ID alanları sayı olmalı.");
+            JOptionPane.showMessageDialog(this, "Hata: Girdiğiniz ID'leri kontrol edin.");
         }
     }
 
     private Connection baglanti() throws Exception {
         return DriverManager.getConnection("jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8", "root", "");
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new OduncEkrani().setVisible(true));
     }
 }
