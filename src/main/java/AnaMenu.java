@@ -72,7 +72,9 @@ public class AnaMenu extends JFrame {
         btnCikis.setFont(btnFont);
         btnCikis.setForeground(Color.RED);
         btnCikis.addActionListener(e -> {
-            this.dispose();
+            for (Window window : Window.getWindows()) {
+                window.dispose();
+            }
             new GirisEkrani().setVisible(true);
         });
         pnlButonlar.add(btnCikis);
