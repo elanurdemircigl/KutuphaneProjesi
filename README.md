@@ -18,3 +18,12 @@ BAĞLANTI NOTLARI
 
    String dbUser = "root";  //Kullanıcı adı
    String dbPass = "";      //Şifre
+   
+4. Uygulama Giriş Bilgileri (Test Hesabı):
+   Uygulama açıldığında test etmek için aşağıdaki yetkili hesap bilgilerini kullanabilirsiniz:
+
+   - Kullanıcı Adı: elanur
+   - Şifre: 1234
+     veya
+   - Kullanıcı Adı: duru
+   - Şifre: 1234
