@@ -4,7 +4,7 @@ import java.awt.*;
 public class AnaMenu extends JFrame {
 
     public AnaMenu(String kullaniciRolu) {
-        //Pencere ayarları
+
         setTitle("Kütüphane Yönetim Sistemi - Ana Menü");
         setSize(800, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

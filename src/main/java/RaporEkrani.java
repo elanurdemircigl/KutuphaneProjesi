@@ -34,7 +34,7 @@ public class RaporEkrani extends JFrame {
 
         tabs = new JTabbedPane();
 
-        // --- STATİK RAPORLAR ---
+
         JPanel pnlStatik = new JPanel(new GridLayout(3, 1, 10, 10));
         pnlStatik.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -135,18 +135,17 @@ public class RaporEkrani extends JFrame {
         btnDinamik.setForeground(Color.WHITE);
         pnlDinamik.add(btnDinamik, gbc);
 
-        // --- YENİ EKLENEN KISIM: YAZDIR BUTONU ---
         gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 4; gbc.ipady = 10;
         JButton btnYazdir = new JButton("Raporu Yazdır (PDF)");
         btnYazdir.setBackground(new Color(108, 117, 125)); // Gri ton
         btnYazdir.setForeground(Color.WHITE);
         pnlDinamik.add(btnYazdir, gbc);
-        // ----------------------------------------
+
 
         tabs.addTab("Dinamik Sorgu", pnlDinamik);
         add(tabs, BorderLayout.NORTH);
 
-        // Olay Dinleyicileri
+
         btnOzet.addActionListener(e -> uyeOzetGetir());
         btnTarih.addActionListener(e -> tarihRaporuGetir());
 
@@ -166,10 +165,9 @@ public class RaporEkrani extends JFrame {
         btnDinamik.addActionListener(e -> dinamikAramaYap());
         btnExcel.addActionListener(e -> excelDisaAktar());
 
-        // --- YENİ EKLENEN YAZDIRMA FONKSİYONU ---
         btnYazdir.addActionListener(e -> {
             try {
-                // Tabloyu yazdırma komutu (Başlık ve Sayfa numarası ekler)
+
                 boolean complete = table.print(JTable.PrintMode.FIT_WIDTH,
                         new MessageFormat("Arama Sonuçları Raporu"),
                         new MessageFormat("Sayfa - {0}"));
