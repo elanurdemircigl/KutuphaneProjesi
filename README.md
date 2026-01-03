@@ -24,6 +24,6 @@ BAĞLANTI NOTLARI
 
    - Kullanıcı Adı: elanur
    - Şifre: 1234
-     veya
+                                          veya
    - Kullanıcı Adı: duru
    - Şifre: 1234
