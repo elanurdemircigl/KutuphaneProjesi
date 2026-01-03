@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Anamakine: 127.0.0.1
--- Üretim Zamanı: 27 Ara 2025, 17:25:00
--- Sunucu sürümü: 10.4.32-MariaDB
--- PHP Sürümü: 8.2.12
+-- Anamakine: localhost
+-- Üretim Zamanı: 02 Oca 2026, 22:43:35
+-- Sunucu sürümü: 10.4.28-MariaDB
+-- PHP Sürümü: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -25,41 +25,41 @@ DELIMITER $$
 --
 -- Yordamlar
 --
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_KitapAra` (IN `p_AramaMetni` VARCHAR(100), IN `p_Kategori` VARCHAR(50))   BEGIN
-    SELECT * FROM KITAP
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_KitapAra` (IN `p_AramaMetni` VARCHAR(100), IN `p_KategoriID` INT)   BEGIN
+    SELECT 
+        k.KitapID, k.KitapAdi, k.Yazar, k.Yayinevi, 
+        k.BasimYili, k.ToplamAdet, k.MevcutAdet, 
+        c.KategoriAdi  -- Kategori adını diğer tablodan çekiyoruz
+    FROM KITAP k
+    LEFT JOIN KATEGORI c ON k.KategoriID = c.KategoriID
     WHERE 
-        -- 1. Kural: Arama metni boşsa geç, doluysa Kitap Adı VEYA Yazar'da ara
         (
             p_AramaMetni IS NULL OR p_AramaMetni = '' 
-            OR KitapAdi LIKE CONCAT('%', p_AramaMetni, '%') 
-            OR Yazar LIKE CONCAT('%', p_AramaMetni, '%')
+            OR k.KitapAdi LIKE CONCAT('%', p_AramaMetni, '%') 
+            OR k.Yazar LIKE CONCAT('%', p_AramaMetni, '%')
         )
         AND 
-        -- 2. Kural: Kategori 'Hepsi' seçildiyse geç, değilse o kategoriyi getir
         (
-            p_Kategori IS NULL OR p_Kategori = 'Hepsi' OR p_Kategori = '' 
-            OR Kategori = p_Kategori
+            -- KategoriID 0 veya NULL gelirse 'Hepsi' kabul et
+            p_KategoriID IS NULL OR p_KategoriID = 0 
+            OR k.KategoriID = p_KategoriID
         );
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_KitapEkleVeyaGuncelle` (IN `p_KitapID` INT, IN `p_KitapAdi` VARCHAR(255), IN `p_Yazar` VARCHAR(255), IN `p_Kategori` VARCHAR(100), IN `p_Yayinevi` VARCHAR(255), IN `p_BasimYili` INT, IN `p_ToplamAdet` INT)   BEGIN
-    -- Kitap mevcut mu kontrol et
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_KitapEkleVeyaGuncelle` (IN `p_KitapID` INT, IN `p_KitapAdi` VARCHAR(255), IN `p_Yazar` VARCHAR(255), IN `p_KategoriID` INT, IN `p_Yayinevi` VARCHAR(255), IN `p_BasimYili` INT, IN `p_ToplamAdet` INT)   BEGIN
     IF EXISTS (SELECT 1 FROM KITAP WHERE KitapID = p_KitapID) THEN
-        -- Güncelleme işlemi
         UPDATE KITAP SET 
             KitapAdi = p_KitapAdi, 
             Yazar = p_Yazar, 
-            Kategori = p_Kategori, 
+            KategoriID = p_KategoriID, -- Burası değişti
             Yayinevi = p_Yayinevi, 
             BasimYili = p_BasimYili, 
             ToplamAdet = p_ToplamAdet,
-            -- MevcutAdet'i de toplam sayıya göre orantılı güncelle (Opsiyonel mantık)
             MevcutAdet = MevcutAdet + (p_ToplamAdet - ToplamAdet)
         WHERE KitapID = p_KitapID;
     ELSE
-        -- Yeni ekleme işlemi
-        INSERT INTO KITAP (KitapAdi, Yazar, Kategori, Yayinevi, BasimYili, ToplamAdet, MevcutAdet) 
-        VALUES (p_KitapAdi, p_Yazar, p_Kategori, p_Yayinevi, p_BasimYili, p_ToplamAdet, p_ToplamAdet);
+        INSERT INTO KITAP (KitapAdi, Yazar, KategoriID, Yayinevi, BasimYili, ToplamAdet, MevcutAdet) 
+        VALUES (p_KitapAdi, p_Yazar, p_KategoriID, p_Yayinevi, p_BasimYili, p_ToplamAdet, p_ToplamAdet);
     END IF;
 END$$
 
@@ -93,27 +93,35 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UyeOzetRapor` (IN `p_UyeID` INT)
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_YeniOduncVer` (IN `p_UyeID` INT, IN `p_KitapID` INT, IN `p_KullaniciID` INT)   BEGIN
-    DECLARE v_OduncTarihi DATE;
-    DECLARE v_SonTeslimTarihi DATE;
     DECLARE v_MevcutStok INT;
+    DECLARE v_UyeKitapSayisi INT;
 
-    -- 1. Stok kontrolü yapalım
+    -- Kitabın gerçek stok miktarını al (Sütun: MevcutAdet)
     SELECT MevcutAdet INTO v_MevcutStok FROM KITAP WHERE KitapID = p_KitapID;
 
-    IF v_MevcutStok > 0 THEN
-        -- 2. Tarihleri Hesapla (Otomatik 15 gün sonrası)
-        SET v_OduncTarihi = CURDATE();
-        SET v_SonTeslimTarihi = DATE_ADD(v_OduncTarihi, INTERVAL 15 DAY);
+    -- Üyenin teslim etmediği kitap sayısını say (5 Kitap Sınırı)
+    SELECT COUNT(*) INTO v_UyeKitapSayisi FROM ODUNC WHERE UyeID = p_UyeID AND TeslimTarihi IS NULL;
 
-        -- 3. Ödünç kaydını ekle
-        INSERT INTO ODUNC (UyeID, KitapID, KullaniciID, OduncTarihi, SonTeslimTarihi, TeslimTarihi)
-        VALUES (p_UyeID, p_KitapID, p_KullaniciID, v_OduncTarihi, v_SonTeslimTarihi, NULL);
-
-        -- 4. Kitap stoğunu 1 azalt
-        UPDATE KITAP SET MevcutAdet = MevcutAdet - 1 WHERE KitapID = p_KitapID;
+    -- --- KONTROLLER ---
+    
+    -- Stok Kontrolü
+    IF v_MevcutStok <= 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Hata: Stokta kitap yok! (MevcutAdet 0)';
+        
+    -- Limit Kontrolü
+    ELSEIF v_UyeKitapSayisi >= 5 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Hata: HATA: Bu üye maksimum (5) kitap limitine ulaşmıştır!';
+        
     ELSE
-        -- Stok yoksa hata fırlat
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Stokta kitap yok!';
+        -- Kayıt Ekle (Sütunlar: KullaniciID, OduncTarihi)
+        INSERT INTO ODUNC (UyeID, KitapID, KullaniciID, OduncTarihi, SonTeslimTarihi, TeslimTarihi)
+        VALUES (p_UyeID, p_KitapID, p_KullaniciID, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 15 DAY), NULL);
+
+        -- Kitap stoğunu 1 azalt
+        UPDATE KITAP SET MevcutAdet = MevcutAdet - 1 WHERE KitapID = p_KitapID;
+        
+        -- Not: SQL dosyanızdaki TRIGGER (TR_ODUNC_INSERT) de stoğu azaltıyor olabilir. 
+        -- Eğer çift düşüş olursa yukarıdaki UPDATE satırını silebilirsiniz.
     END IF;
 END$$
 
@@ -159,6 +167,26 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Tablo için tablo yapısı `kategori`
+--
+
+CREATE TABLE `kategori` (
+  `KategoriID` int(11) NOT NULL,
+  `KategoriAdi` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Tablo döküm verisi `kategori`
+--
+
+INSERT INTO `kategori` (`KategoriID`, `KategoriAdi`) VALUES
+(1, 'Roman'),
+(2, 'Yazılım'),
+(3, 'Tarih');
+
+-- --------------------------------------------------------
+
+--
 -- Tablo için tablo yapısı `kitap`
 --
 
@@ -166,23 +194,23 @@ CREATE TABLE `kitap` (
   `KitapID` int(11) NOT NULL,
   `KitapAdi` varchar(150) NOT NULL,
   `Yazar` varchar(100) NOT NULL,
-  `Kategori` varchar(50) DEFAULT NULL,
   `Yayinevi` varchar(100) DEFAULT NULL,
   `BasimYili` int(11) DEFAULT NULL,
   `ToplamAdet` int(11) NOT NULL,
-  `MevcutAdet` int(11) NOT NULL
+  `MevcutAdet` int(11) NOT NULL,
+  `KategoriID` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Tablo döküm verisi `kitap`
 --
 
-INSERT INTO `kitap` (`KitapID`, `KitapAdi`, `Yazar`, `Kategori`, `Yayinevi`, `BasimYili`, `ToplamAdet`, `MevcutAdet`) VALUES
-(1, 'Sefiller', 'Victor Hugo', 'Roman', 'Can Yayınları', 1862, 8, 7),
-(2, 'Suç ve Ceza', 'Dostoyevski', 'Roman', 'İş Bankası', 1866, 3, 1),
-(3, 'Temiz Kod', 'Robert C. Martin', 'Yazılım', 'Pearson', 2008, 10, 9),
-(4, 'Java Programlama', 'Deitel', 'Yazılım', 'Pearson', 2018, 5, 5),
-(5, 'Nutuk', 'Mustafa Kemal Atatürk', 'Tarih', 'TTK', 1927, 10, 10);
+INSERT INTO `kitap` (`KitapID`, `KitapAdi`, `Yazar`, `Yayinevi`, `BasimYili`, `ToplamAdet`, `MevcutAdet`, `KategoriID`) VALUES
+(1, 'Sefiller', 'Victor Hugo', 'Can Yayınları', 1862, 8, 1, 1),
+(2, 'Suç ve Ceza', 'Dostoyevski', 'İş Bankası', 1866, 3, 0, 1),
+(3, 'Temiz Kod', 'Robert C. Martin', 'Pearson', 2008, 10, 5, 2),
+(4, 'Java Programlama', 'Deitel', 'Pearson', 2018, 5, 1, 2),
+(5, 'Nutuk', 'Mustafa Kemal Atatürk', 'TTK', 1927, 10, 6, 3);
 
 -- --------------------------------------------------------
 
@@ -269,7 +297,38 @@ INSERT INTO `log_islem` (`LogID`, `IslemTipi`, `Aciklama`, `IslemTarihi`) VALUES
 (43, 'ODUNC VERME', 'KitapID: 3 odunc verildi.', '2025-12-27 19:08:38'),
 (44, 'ODUNC VERME', 'KitapID: 2 odunc verildi.', '2025-12-27 19:14:24'),
 (45, 'TESLIM ALMA', 'OduncID: 24 teslim alindi.', '2025-12-27 19:16:26'),
-(46, 'TESLIM ALMA', 'OduncID: 23 teslim alindi.', '2025-12-27 19:16:30');
+(46, 'TESLIM ALMA', 'OduncID: 23 teslim alindi.', '2025-12-27 19:16:30'),
+(47, 'ODUNC VERME', 'KitapID: 2 odunc verildi.', '2026-01-02 21:47:07'),
+(48, 'ODUNC VERME', 'KitapID: 4 odunc verildi.', '2026-01-02 21:47:32'),
+(49, 'TESLIM ALMA', 'OduncID: 25 teslim alindi.', '2026-01-02 22:47:59'),
+(50, 'TESLIM ALMA', 'OduncID: 27 teslim alindi.', '2026-01-02 22:48:02'),
+(51, 'ODUNC VERME', 'KitapID: 5 odunc verildi.', '2026-01-02 23:04:55'),
+(52, 'ODUNC VERME', 'KitapID: 1 odunc verildi.', '2026-01-02 23:06:40'),
+(53, 'ODUNC VERME', 'KitapID: 1 odunc verildi.', '2026-01-02 23:06:52'),
+(54, 'ODUNC VERME', 'KitapID: 1 odunc verildi.', '2026-01-02 23:06:57'),
+(55, 'ODUNC VERME', 'KitapID: 1 odunc verildi.', '2026-01-02 23:07:00'),
+(56, 'ODUNC VERME', 'KitapID: 4 odunc verildi.', '2026-01-02 23:07:25'),
+(57, 'ODUNC VERME', 'KitapID: 5 odunc verildi.', '2026-01-02 23:09:01'),
+(58, 'TESLIM ALMA', 'OduncID: 35 teslim alindi.', '2026-01-02 23:16:20'),
+(59, 'TESLIM ALMA', 'OduncID: 30 teslim alindi.', '2026-01-02 23:27:53'),
+(60, 'TESLIM ALMA', 'OduncID: 31 teslim alindi.', '2026-01-02 23:27:58'),
+(61, 'TESLIM ALMA', 'OduncID: 28 teslim alindi.', '2026-01-02 23:28:01'),
+(62, 'ODUNC VERME', 'KitapID: 3 odunc verildi.', '2026-01-02 23:58:26'),
+(63, 'ODUNC VERME', 'KitapID: 4 odunc verildi.', '2026-01-02 23:58:30'),
+(64, 'ODUNC VERME', 'KitapID: 2 odunc verildi.', '2026-01-02 23:58:35'),
+(65, 'ODUNC VERME', 'KitapID: 1 odunc verildi.', '2026-01-03 00:01:13'),
+(66, 'TESLIM ALMA', 'OduncID: 36 teslim alindi.', '2026-01-03 00:11:36'),
+(67, 'ODUNC VERME', 'KitapID: 4 odunc verildi.', '2026-01-03 00:14:01'),
+(68, 'ODUNC VERME', 'KitapID: 4 odunc verildi.', '2026-01-03 00:14:04'),
+(69, 'ODUNC VERME', 'KitapID: 4 odunc verildi.', '2026-01-03 00:14:09'),
+(70, 'TESLIM ALMA', 'OduncID: 42 teslim alindi.', '2026-01-03 00:18:14'),
+(71, 'TESLIM ALMA', 'OduncID: 41 teslim alindi.', '2026-01-03 00:18:17'),
+(72, 'TESLIM ALMA', 'OduncID: 40 teslim alindi.', '2026-01-03 00:18:20'),
+(73, 'TESLIM ALMA', 'OduncID: 33 teslim alindi.', '2026-01-03 00:18:48'),
+(74, 'TESLIM ALMA', 'OduncID: 38 teslim alindi.', '2026-01-03 00:18:58'),
+(75, 'ODUNC VERME', 'KitapID: 3 odunc verildi.', '2026-01-03 00:32:42'),
+(76, 'ODUNC VERME', 'KitapID: 3 odunc verildi.', '2026-01-03 00:33:01'),
+(77, 'ODUNC VERME', 'KitapID: 5 odunc verildi.', '2026-01-03 00:33:12');
 
 -- --------------------------------------------------------
 
@@ -281,7 +340,6 @@ CREATE TABLE `odunc` (
   `OduncID` int(11) NOT NULL,
   `UyeID` int(11) DEFAULT NULL,
   `KitapID` int(11) DEFAULT NULL,
-  `VerenPersonelID` int(11) DEFAULT NULL,
   `OduncTarihi` datetime DEFAULT current_timestamp(),
   `SonTeslimTarihi` datetime DEFAULT NULL,
   `TeslimTarihi` datetime DEFAULT NULL,
@@ -292,12 +350,31 @@ CREATE TABLE `odunc` (
 -- Tablo döküm verisi `odunc`
 --
 
-INSERT INTO `odunc` (`OduncID`, `UyeID`, `KitapID`, `VerenPersonelID`, `OduncTarihi`, `SonTeslimTarihi`, `TeslimTarihi`, `KullaniciID`) VALUES
-(1, 1, 1, NULL, '2023-01-01 00:00:00', '2023-01-15 00:00:00', '2023-01-20 00:00:00', 1),
-(2, 1, 2, NULL, '2023-02-01 00:00:00', '2023-02-15 00:00:00', '2023-02-20 00:00:00', 1),
-(3, 1, 1, NULL, '2023-03-01 00:00:00', '2023-03-15 00:00:00', '2025-12-27 18:35:35', 1),
-(23, 2, 3, NULL, '2025-12-27 00:00:00', '2026-01-11 00:00:00', '2025-12-27 19:16:30', 1),
-(24, 9, 2, NULL, '2025-12-27 00:00:00', '2026-01-11 00:00:00', '2025-12-27 19:16:26', 1);
+INSERT INTO `odunc` (`OduncID`, `UyeID`, `KitapID`, `OduncTarihi`, `SonTeslimTarihi`, `TeslimTarihi`, `KullaniciID`) VALUES
+(1, 1, 1, '2023-01-01 00:00:00', '2023-01-15 00:00:00', '2023-01-20 00:00:00', 1),
+(2, 1, 2, '2023-02-01 00:00:00', '2023-02-15 00:00:00', '2023-02-20 00:00:00', 1),
+(3, 1, 1, '2023-03-01 00:00:00', '2023-03-15 00:00:00', '2025-12-27 18:35:35', 1),
+(23, 2, 3, '2025-12-27 00:00:00', '2026-01-11 00:00:00', '2025-12-27 19:16:30', 1),
+(24, 9, 2, '2025-12-27 00:00:00', '2026-01-11 00:00:00', '2025-12-27 19:16:26', 1),
+(25, 1, 2, '2026-01-02 00:00:00', '2026-01-17 00:00:00', '2026-01-02 22:47:59', 1),
+(27, 2, 4, '2026-01-02 00:00:00', '2026-01-17 00:00:00', '2026-01-02 22:48:02', 1),
+(28, 2, 5, '2026-01-02 00:00:00', '2026-01-17 00:00:00', '2026-01-02 23:28:01', 1),
+(30, 4, 1, '2026-01-02 00:00:00', '2026-01-17 00:00:00', '2026-01-02 23:27:53', 1),
+(31, 4, 1, '2026-01-02 00:00:00', '2026-01-17 00:00:00', '2026-01-02 23:27:58', 1),
+(32, 4, 1, '2026-01-02 00:00:00', '2026-01-17 00:00:00', NULL, 1),
+(33, 4, 1, '2026-01-02 00:00:00', '2026-01-17 00:00:00', '2026-01-03 00:18:48', 1),
+(34, 4, 4, '2026-01-02 00:00:00', '2026-01-17 00:00:00', NULL, 1),
+(35, 4, 5, '2026-01-02 00:00:00', '2026-01-17 00:00:00', '2026-01-02 23:16:20', 1),
+(36, 2, 3, '2026-01-02 23:58:26', '2026-01-17 23:58:26', '2026-01-03 00:11:36', 1),
+(37, 2, 4, '2026-01-02 23:58:30', '2026-01-17 23:58:30', NULL, 1),
+(38, 4, 2, '2026-01-02 23:58:35', '2026-01-17 23:58:35', '2026-01-03 00:18:58', 1),
+(39, 1, 1, '2023-01-01 00:00:00', '2023-01-16 00:00:00', NULL, 1),
+(40, 4, 4, '2026-01-03 00:14:01', '2026-01-18 00:14:01', '2026-01-03 00:18:20', 1),
+(41, 5, 4, '2026-01-03 00:14:04', '2026-01-18 00:14:04', '2026-01-03 00:18:17', 1),
+(42, 5, 4, '2026-01-03 00:14:09', '2026-01-18 00:14:09', '2026-01-03 00:18:14', 1),
+(43, 8, 3, '2026-01-03 00:00:00', '2026-01-18 00:00:00', NULL, 1),
+(45, 6, 3, '2026-01-03 00:00:00', '2026-01-18 00:00:00', NULL, 1),
+(47, 6, 5, '2026-01-03 00:00:00', '2026-01-18 00:00:00', NULL, 1);
 
 --
 -- Tetikleyiciler `odunc`
@@ -348,8 +425,24 @@ INSERT INTO `uye` (`UyeID`, `Ad`, `Soyad`, `Telefon`, `Email`, `ToplamBorc`) VAL
 (5, 'Merve', 'Akyol', '5553034040', 'merve.akyol@gmail.com', 0.00),
 (6, 'Melike', 'Boztepe', '5554045050', 'melike.boztepe@gmail.com', 2010.00),
 (7, 'Bengisu', 'Ozkay', '5555056060', 'bengisu.ozkay@gmail.com', 1835.00),
-(8, 'Duru', 'eken', '5435490414', 'duru.eken@omu.edu.tr', 0.00),
+(8, 'Duru', 'Eken', '5435490414', 'duru.eken@omu.edu.tr', 0.00),
 (9, 'Beyza', 'Yagli', '5546545165', 'bayza.yagli@gmail.com', 0.00);
+
+--
+-- Tetikleyiciler `uye`
+--
+DELIMITER $$
+CREATE TRIGGER `TR_UYE_DELETE_BLOCK` BEFORE DELETE ON `uye` FOR EACH ROW BEGIN
+    IF OLD.ToplamBorc > 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Borcu olan üye silinemez!';
+    ELSEIF (SELECT COUNT(*) FROM ODUNC WHERE UyeID = OLD.UyeID AND TeslimTarihi IS NULL) > 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Teslim edilmemiş kitabı olan üye silinemez!';
+    END IF;
+END
+$$
+DELIMITER ;
 
 --
 -- Dökümü yapılmış tablolar için indeksler
@@ -364,10 +457,17 @@ ALTER TABLE `ceza`
   ADD KEY `OduncID` (`OduncID`);
 
 --
+-- Tablo için indeksler `kategori`
+--
+ALTER TABLE `kategori`
+  ADD PRIMARY KEY (`KategoriID`);
+
+--
 -- Tablo için indeksler `kitap`
 --
 ALTER TABLE `kitap`
-  ADD PRIMARY KEY (`KitapID`);
+  ADD PRIMARY KEY (`KitapID`),
+  ADD KEY `fk_kitap_kategori` (`KategoriID`);
 
 --
 -- Tablo için indeksler `kullanici`
@@ -389,7 +489,6 @@ ALTER TABLE `odunc`
   ADD PRIMARY KEY (`OduncID`),
   ADD KEY `UyeID` (`UyeID`),
   ADD KEY `KitapID` (`KitapID`),
-  ADD KEY `VerenPersonelID` (`VerenPersonelID`),
   ADD KEY `fk_odunc_kullanici` (`KullaniciID`);
 
 --
@@ -409,6 +508,12 @@ ALTER TABLE `ceza`
   MODIFY `CezaID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
+-- Tablo için AUTO_INCREMENT değeri `kategori`
+--
+ALTER TABLE `kategori`
+  MODIFY `KategoriID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- Tablo için AUTO_INCREMENT değeri `kitap`
 --
 ALTER TABLE `kitap`
@@ -424,13 +529,13 @@ ALTER TABLE `kullanici`
 -- Tablo için AUTO_INCREMENT değeri `log_islem`
 --
 ALTER TABLE `log_islem`
-  MODIFY `LogID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
+  MODIFY `LogID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `odunc`
 --
 ALTER TABLE `odunc`
-  MODIFY `OduncID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `OduncID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `uye`
@@ -450,13 +555,18 @@ ALTER TABLE `ceza`
   ADD CONSTRAINT `ceza_ibfk_2` FOREIGN KEY (`OduncID`) REFERENCES `odunc` (`OduncID`);
 
 --
+-- Tablo kısıtlamaları `kitap`
+--
+ALTER TABLE `kitap`
+  ADD CONSTRAINT `fk_kitap_kategori` FOREIGN KEY (`KategoriID`) REFERENCES `kategori` (`KategoriID`);
+
+--
 -- Tablo kısıtlamaları `odunc`
 --
 ALTER TABLE `odunc`
   ADD CONSTRAINT `fk_odunc_kullanici` FOREIGN KEY (`KullaniciID`) REFERENCES `kullanici` (`KullaniciID`),
   ADD CONSTRAINT `odunc_ibfk_1` FOREIGN KEY (`UyeID`) REFERENCES `uye` (`UyeID`),
-  ADD CONSTRAINT `odunc_ibfk_2` FOREIGN KEY (`KitapID`) REFERENCES `kitap` (`KitapID`),
-  ADD CONSTRAINT `odunc_ibfk_3` FOREIGN KEY (`VerenPersonelID`) REFERENCES `kullanici` (`KullaniciID`);
+  ADD CONSTRAINT `odunc_ibfk_2` FOREIGN KEY (`KitapID`) REFERENCES `kitap` (`KitapID`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
