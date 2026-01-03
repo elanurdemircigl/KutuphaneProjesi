@@ -104,7 +104,7 @@ public class OduncEkrani extends JFrame {
 
     private void islemOduncVer() {
         try (Connection conn = baglanti()) {
-            // Prosedürü çağırıyoruz
+
             String sql = "{ call sp_YeniOduncVer(?, ?, ?) }";
             CallableStatement cstmt = conn.prepareCall(sql);
 
@@ -115,12 +115,11 @@ public class OduncEkrani extends JFrame {
             cstmt.execute();
             JOptionPane.showMessageDialog(this, "İşlem Başarılı! Kitap ödünç verildi.");
 
-            // Başarılıysa alanları temizle
             txtUyeID.setText("");
             txtKitapID.setText("");
 
         } catch (SQLException ex) {
-            // Veritabanındaki tüm hataları (stok yok, limit doldu) burada yakalarız
+
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Message", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Hata: Girdiğiniz ID'leri kontrol edin.");

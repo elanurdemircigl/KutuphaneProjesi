@@ -1,4 +1,4 @@
-import com.formdev.flatlaf.FlatDarkLaf; // FlatLaf Importu
+import com.formdev.flatlaf.FlatDarkLaf;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -13,14 +13,13 @@ public class GirisEkrani extends JFrame {
     private JPasswordField txtSifre;
 
     public GirisEkrani() {
-        // Pencere Ayarları
+
         setTitle("Kütüphane Otomasyonu - Giriş");
         setSize(400, 250);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(null);
 
-        // Kullanıcı Adı
         JLabel lblKadi = new JLabel("Kullanıcı Adı:");
         lblKadi.setBounds(50, 50, 100, 30);
         add(lblKadi);
@@ -29,7 +28,7 @@ public class GirisEkrani extends JFrame {
         txtKullaniciAdi.setBounds(150, 50, 150, 30);
         add(txtKullaniciAdi);
 
-        // Şifre
+
         JLabel lblSifre = new JLabel("Şifre:");
         lblSifre.setBounds(50, 100, 100, 30);
         add(lblSifre);
@@ -38,7 +37,6 @@ public class GirisEkrani extends JFrame {
         txtSifre.setBounds(150, 100, 150, 30);
         add(txtSifre);
 
-        // Giriş Butonu
         JButton btnGiris = new JButton("Giriş Yap");
         btnGiris.setBounds(150, 150, 150, 40);
         add(btnGiris);
@@ -72,14 +70,13 @@ public class GirisEkrani extends JFrame {
             if (sonuc.next()) {
                 String rol = sonuc.getString("Rol");
 
-                // Giriş Başarılı Mesajı
                 JOptionPane.showMessageDialog(this,
                         "Giriş Başarılı! Rol: " + rol,
                         "Message",
                         JOptionPane.INFORMATION_MESSAGE);
 
                 this.dispose();
-                // AnaMenu sınıfına rol bilgisini gönderiyoruz
+
                 new AnaMenu(rol).setVisible(true);
             } else {
                 JOptionPane.showMessageDialog(this, "Hatalı Kullanıcı Adı veya Şifre!", "Hata", JOptionPane.ERROR_MESSAGE);
@@ -93,12 +90,11 @@ public class GirisEkrani extends JFrame {
     }
 
     public static void main(String[] args) {
-        // --- KARANLIK MOD VE GÖRÜNÜM AYARI ---
+
         try {
-            // FlatLaf Karanlık Temayı başlatır
+
             FlatDarkLaf.setup();
 
-            // Pencere başlık çubuğunun temayla uyumlu olmasını sağlar
             UIManager.put("TitlePane.unifiedBackground", true);
 
         } catch (Exception ex) {
