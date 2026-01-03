@@ -140,8 +140,7 @@ public class KitapEkrani extends JFrame {
         return DriverManager.getConnection("jdbc:mysql://localhost:3306/kütüphanedb?useUnicode=true&characterEncoding=utf8", "root", "");
     }
 
-    // --- YENİ EKLENEN YARDIMCI METOT ---
-    // Veritabanından isme göre ID bulur.
+    //Veritabanından isme göre ID bulur.
     private int kategoriIdBul(String kategoriAdi) {
         int id = 0;
         try (Connection conn = baglanti()) {
@@ -166,7 +165,6 @@ public class KitapEkrani extends JFrame {
 
             cs.setString(1, aranan);
 
-            // --- DÜZELTME: Artık String 'Hepsi' değil, int 0 gönderiyoruz ---
             cs.setInt(2, 0);
 
             ResultSet rs = cs.executeQuery();
@@ -194,14 +192,12 @@ public class KitapEkrani extends JFrame {
 
     private void kitapEkle() {
         try (Connection conn = baglanti()) {
-            // --- DÜZELTME: Sütun adı KategoriID oldu ---
             String sql = "INSERT INTO KITAP (KitapAdi, Yazar, KategoriID, Yayinevi, BasimYili, ToplamAdet, MevcutAdet) VALUES (?,?,?,?,?,?,?)";
             PreparedStatement ps = conn.prepareStatement(sql);
 
             ps.setString(1, txtAd.getText());
             ps.setString(2, txtYazar.getText());
 
-            // --- DÜZELTME: İsmi ID'ye çevirip kaydediyoruz ---
             int kID = kategoriIdBul(cbKategori.getSelectedItem().toString());
             if (kID == 0) {
                 JOptionPane.showMessageDialog(this, "Hata: Seçilen kategori veritabanında bulunamadı!");
@@ -213,7 +209,7 @@ public class KitapEkrani extends JFrame {
             ps.setInt(5, Integer.parseInt(txtYil.getText()));
             int adet = Integer.parseInt(txtAdet.getText());
             ps.setInt(6, adet);
-            ps.setInt(7, adet); // Başlangıçta Mevcut = Toplam
+            ps.setInt(7, adet); //Başlangıçta Mevcut = Toplam
 
             ps.executeUpdate();
             JOptionPane.showMessageDialog(this, "Kitap Başarıyla Eklendi!");
@@ -230,14 +226,12 @@ public class KitapEkrani extends JFrame {
             return;
         }
         try (Connection conn = baglanti()) {
-            // --- DÜZELTME: Sütun adı KategoriID oldu ---
             String sql = "UPDATE KITAP SET KitapAdi=?, Yazar=?, KategoriID=?, Yayinevi=?, BasimYili=?, ToplamAdet=? WHERE KitapID=?";
             PreparedStatement ps = conn.prepareStatement(sql);
 
             ps.setString(1, txtAd.getText());
             ps.setString(2, txtYazar.getText());
 
-            // --- DÜZELTME: İsmi ID'ye çevirip güncelliyoruz ---
             int kID = kategoriIdBul(cbKategori.getSelectedItem().toString());
             if (kID == 0) {
                 JOptionPane.showMessageDialog(this, "Hata: Seçilen kategori veritabanında bulunamadı!");
